@@ -10,6 +10,8 @@ plugins {
 group = "com.example"
 version = "1.0-SNAPSHOT"
 
+val composeVersion = project.property("compose.version")
+
 repositories {
     google()
     mavenCentral()
@@ -27,6 +29,9 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation("org.jetbrains.compose.ui:ui-graphics-desktop:$composeVersion")
+                implementation("org.jetbrains.compose.ui:ui-geometry-desktop:$composeVersion")
+                implementation("org.jetbrains.compose.foundation:foundation-desktop:$composeVersion")
             }
         }
         val jvmTest by getting
