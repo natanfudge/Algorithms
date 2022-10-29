@@ -1,18 +1,18 @@
 package logic
 
-import java.util.TreeSet
+import androidx.compose.ui.graphics.Color
 
 interface Graph {
     val vertices: List<Vertex>
     val edges: List<Edge>
     val isDirected: Boolean
 
-    fun Vertex.getNeighbors(): List<Vertex>
-    fun Vertex.getEdges(): List<Edge>
+    fun neighborsOf(vertex: Vertex): List<Vertex>
+    fun edgesOf(vertex: Vertex): List<Edge>
 
     class Builder(private val directed: Boolean) {
-        private val vertices = mutableListOf<VertexTag>()
-        private val edges = mutableListOf<Edge.Builder>()
+        private val vertices = mutableSetOf<VertexTag>()
+        private val edges = mutableSetOf<Edge.Builder>()
         fun addVertex(vertex: VertexTag): Boolean {
             require(vertex !in vertices)
             return vertices.add(vertex)
@@ -20,9 +20,9 @@ interface Graph {
 
         fun addVertex(vertex: Vertex) = addVertex(vertex.tag)
 
-        fun addVertices(vararg vertices: VertexTag) {
-            for (vertex in vertices) addVertex(vertex)
-        }
+//        fun addVertices(vararg vertices: VertexTag) {
+//            for (vertex in vertices) addVertex(vertex)
+//        }
 
         fun addEdges(vararg edges: Edge.Builder) {
             for (edge in edges) addEdge(edge)
@@ -32,21 +32,35 @@ interface Graph {
 //            val existingTags = vertices.map { it.tag }
             if (this !in vertices) addVertex(this)
             if (other !in vertices) addVertex(other)
-            return addEdge(Edge.Builder(this, other))
+            return addEdge(this, other)
         }
 
+        fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, directed))
+        fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
+
         fun addEdge(edge: Edge.Builder) = edges.add(edge)
-        fun addEdge(edge: Edge) = edges.add(Edge.Builder(edge.start.tag, edge.end.tag))
+        fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
         fun build(): LinkedListGraph {
+            val verticesOrdered = vertices.sortedBy { it.value }
             val vertexToIndex = buildMap {
-                vertices.forEachIndexed { index, tag -> put(tag, index) }
+                verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
             }
 
             fun VertexTag.build() = Vertex(tag = this, index = vertexToIndex.getValue(this))
-            fun Edge.Builder.build() = Edge(start = start.build(), end = end.build())
+            fun Edge.Builder.build(): Edge {
+                val (start,end) = when (this) {
+                    is Edge.Builder.Undirected -> {
+                        val asList = this.vertices.toList()
+                        asList[0] to asList[1]
+                    }
+
+                    is Edge.Builder.Directed -> this.start to this.end
+                }
+                return Edge(start = start.build(), end = end.build())
+            }
 
             return LinkedListGraph(
-                vertices.map { it.build() },
+                verticesOrdered.map { it.build() },
                 edges.map { it.build() },
                 directed
             )
@@ -55,6 +69,8 @@ interface Graph {
 
 
 }
+
+fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit ) : Graph = Graph.Builder(directed).apply(builder).build()
 
 class LinkedListGraph(
     override val vertices: List<Vertex>,
@@ -71,29 +87,35 @@ class LinkedListGraph(
         map
     }
 
-    override fun Vertex.getNeighbors(): List<Vertex> = neighbors[this]!!.map { it.end }
-    override fun Vertex.getEdges(): List<Edge> = neighbors[this]!!
+    override fun neighborsOf(vertex: Vertex): List<Vertex> = neighbors[vertex]!!.map { it.end }
+    override fun edgesOf(vertex: Vertex): List<Edge> = neighbors[vertex]!!
 
-    override fun toString(): String = buildString {
-        val orderedVertices = vertices.sortedBy { it.tag }
+    override fun toString(): String {
+        return "${vertices.size} vertices, ${edges.size} edges (isDirected = ${isDirected})"
+    }
 
-        append("Edges: ${orderedVertices.joinToString(" , ")}\n")
-        for (vertex in orderedVertices)
-            append("$vertex --- ${vertex.getNeighbors().joinToString(",")}\n")
-        }
 
 }
 
 
-
-
-data class Vertex(val tag: String, val index: Int) {
-    override fun toString(): String  = "($tag)"
+data class Vertex(val tag: Color, val index: Int) {
+    override fun toString(): String = "($tag)"
+    override fun equals(other: Any?): Boolean  = other is Vertex && other.tag == tag
+    override fun hashCode(): Int = tag.hashCode()
 }
 
-typealias VertexTag = String
+typealias VertexTag = Color
 //data class VertexTag(val tag)
 
 data class Edge(val start: Vertex, val end: Vertex) {
-    data class Builder(val start: VertexTag, val end: VertexTag)
+    sealed interface Builder {
+        companion object {
+            fun create(start: VertexTag, end: VertexTag, directed: Boolean) = if (directed) Directed(start, end)
+            else Undirected(setOf(start, end))
+        }
+
+        data class Directed(val start: VertexTag, val end: VertexTag) : Builder
+        data class Undirected(val vertices: Set<VertexTag>) : Builder
+    }
+//    data class Builder(val start: VertexTag, val end: VertexTag)
 }

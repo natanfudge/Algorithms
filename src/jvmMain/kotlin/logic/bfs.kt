@@ -6,10 +6,8 @@ fun Graph.bfs(root: Vertex): Graph {
     val visited = hashSetOf(root)
 
     var currentLayer = listOf(root)
-    var layerNum = 0
     do {
-//        println("")
-        val nextLayer = currentLayer.flatMap { vertexInLayer -> vertexInLayer.getEdges().filter { it.end !in visited } }
+        val nextLayer = currentLayer.flatMap { vertexInLayer -> edgesOf(vertexInLayer).filter { it.end !in visited } }
         for (edge in nextLayer) {
             bfsTree.addEdge(edge)
             bfsTree.addVertex(edge.end)
@@ -19,4 +17,27 @@ fun Graph.bfs(root: Vertex): Graph {
     } while (currentLayer.isNotEmpty())
 
     return bfsTree.build()
+}
+
+
+fun Graph.getConnectedComponents(): List<Graph> {
+    val componentBfsTrees = mutableListOf<Graph>()
+
+    while (componentBfsTrees.sumOf { it.vertices.size } < vertices.size) {
+        val visitedTags = componentBfsTrees.flatMap { tree -> tree.vertices.map { it.tag } }.toHashSet()
+        val root = vertices.first { it.tag !in visitedTags }
+        componentBfsTrees.add(bfs(root))
+    }
+
+    return componentBfsTrees.map { bfsTree ->
+        buildGraph(isDirected) {
+            for (vertex in bfsTree.vertices) {
+                addVertex(vertex)
+                // Gets all neighbors in the [this] graph
+                for (edge in this@getConnectedComponents.edgesOf(vertex)) {
+                    addEdge(edge)
+                }
+            }
+        }
+    }
 }
