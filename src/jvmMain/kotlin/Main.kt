@@ -18,6 +18,7 @@ import logic.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Composable
 @Preview
@@ -25,11 +26,17 @@ fun App() {
     var text by remember { mutableStateOf("Hello, World!") }
 
 
+    // (1.0, 0.0, 0.0)
     val a = Color.Red
+    // (0.0, 1.0, 0.0)
     val b = Color.Green
+    // (0.0, 0.0, 1.0)
     val c = Color.Blue
+    // (0.0, 0.0, 0.0)
     val d = Color.Black
+    // (0.0, 1.0, 1.0)
     val e = Color.Cyan
+    // (1.0, 1.0, 0.0)
     val f = Color.Yellow
 
     val a2 = Color.Red.copy(alpha = 0.5f)
@@ -42,13 +49,14 @@ fun App() {
     val a3 = Color.Red.copy(alpha = 0.2f)
     val b3 = Color.Green.copy(alpha = 0.2f)
 
-    val graph = Graph.Builder(directed = false).apply {
+    val graph = Graph.Builder(directed = true).apply {
         a edgeTo b
         b edgeTo c
-        c edgeTo a
-        d edgeTo a
-        e edgeTo c
-        f edgeTo e
+        c edgeTo d
+        d edgeTo e
+        e edgeTo f
+        b edgeTo a
+        c edgeTo b
 
         a2 edgeTo b2
         b2 edgeTo c2
@@ -60,19 +68,17 @@ fun App() {
         a3 edgeTo b3
     }.build()
 
-    //TODO: doesn't seem like changing the root changes the output?
-    val newGraph = graph.bfs(root = graph.vertices[1])
-
 
 
     Column {
         GraphUi(graph, Modifier.padding(10.dp).weight(1f))
-        GraphUi(newGraph, Modifier.padding(10.dp).weight(1f))
+        GraphUi( graph.bfs(graph.vertices[2]), Modifier.padding(10.dp).weight(1f))
     }
 
 }
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
+//TODO: special placement for tree graphs
 private fun Graph.chooseVertexPositions(): List<Offset> {
     return when (vertices.size) {
         0 -> listOf()
@@ -87,31 +93,17 @@ private fun Graph.chooseVertexPositions(): List<Offset> {
     }
 }
 
-//private fun Graph.chooseComponentVertexPositions(): List<Offset> {
-//    return when(vertices.size){
-//        0 -> listOf()
-//        1 -> listOf(Offset(0.5f,0.5f))
-//        2 -> listOf(Offset(0.0f,0.5f), Offset(1f,0.5f))
-//        3 -> listOf(Offset(0.5f,0f), Offset(0f,1f), Offset(1f, 1f))
-//        4 -> listOf(Offset(0f,0f), Offset(1f,0f), Offset(0f,1f), Offset(1f,1f))
-//        else -> List(vertices.size) { i ->
-//            val degree = 2.0 * PI * i / vertices.size
-//            Offset(cos(degree).toFloat(), sin(degree).toFloat()) / 2F + Offset(0.5f, 0.5f)
-//        }
-//    }
-//}
-
 
 @Composable
 fun GraphUi(graph: Graph, modifier: Modifier = Modifier) = Canvas(modifier.fillMaxSize()) {
     val connectedComponents = graph.getConnectedComponents()
     val n = connectedComponents.size
-    for ((i, component) in graph.getConnectedComponents().withIndex()) {
+    for ((i, component) in connectedComponents.withIndex()) {
         val padding = if(i == 0) 0f else 10f
         val componentWidth = size.width / n
         drawGraph(
             component,
-            bounds = Rect(Offset(componentWidth * i + padding , 0f), Size(componentWidth - padding, size.height))
+            bounds = Rect(Offset(componentWidth * i + padding, 0f), Size(componentWidth - padding, size.height))
         )
     }
 
@@ -124,24 +116,60 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
         drawVertex(vertex, position)
     }
 
-    if (graph.isDirected) {
-        TODO()
-    } else {
-        for (edge in graph.edges) {
-            drawEdge(edge, positions)
-        }
+    for (edge in graph.edges) {
+        drawEdge(edge, positions, directed = graph.isDirected)
     }
+
 }
 
-fun DrawScope.drawEdge(edge: Edge, vertexPositions: List<Offset>) {
+private fun Offset.length() = sqrt(x * x + y * y)
+private fun Offset.normalized() = this / length()
+
+private fun Offset.rotate(radians: Float): Offset {
+    val x2 = cos(radians) * x - sin(radians) * y
+    val y2 = sin(radians) * x + cos(radians) * y
+    return Offset(x2, y2)
+}
+
+
+fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
+    drawLine(color, start, end)
+
+    val endOriginalized = end - start
+    val normalized = endOriginalized.normalized()
+    val length = 30f
+    val line = normalized * length
+    val directedLineA = line.rotate(2 * PI.toFloat() * (5f / 8f))
+    val directedLineB = line.rotate(2 * PI.toFloat() * (3f / 8f))
+    val positionedLineA = directedLineA + end
+    val positionedLineB = directedLineB + end
+    drawLine(color, end, positionedLineA)
+    drawLine(color, end, positionedLineB)
+}
+const val VertexRadius = 20f
+
+
+fun DrawScope.drawEdge(edge: Edge, vertexPositions: List<Offset>, directed: Boolean) {
     val start = vertexPositions[edge.start.index]
     val end = vertexPositions[edge.end.index]
 
-    drawLine(Color.Black, start = start, end = end)
+    val startToVertex = shortenedLine(end, start, shortenBy = VertexRadius)
+    val endToVertex = shortenedLine(start, end, shortenBy = VertexRadius)
+
+    if (directed) {
+        drawArrow(Color.Black, startToVertex, endToVertex)
+    } else {
+        drawLine(Color.Black, start = startToVertex, end = endToVertex)
+    }
 }
 
+private fun shortenedLine(start: Offset, end: Offset, shortenBy: Float): Offset {
+    val originalized = end - start
+    val normalized = originalized.normalized()
+    val shortVector = normalized * (originalized.length() - shortenBy)
+    return shortVector + start
+}
 
-const val VertexRadius = 40f
 
 private fun placeVertex(relativePosition: Offset, bounds: Rect): Offset {
     val width = bounds.width

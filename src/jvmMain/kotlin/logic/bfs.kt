@@ -21,6 +21,15 @@ fun Graph.bfs(root: Vertex): Graph {
 
 
 fun Graph.getConnectedComponents(): List<Graph> {
+    if (!isDirected) {
+        return getUndirectedConnectedComponents()
+    } else {
+        val (undirected, neighborMap) = undirect()
+        return undirected.getUndirectedConnectedComponents().map { it.direct(neighborMap) }
+    }
+}
+
+private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
     val componentBfsTrees = mutableListOf<Graph>()
 
     while (componentBfsTrees.sumOf { it.vertices.size } < vertices.size) {
@@ -34,7 +43,7 @@ fun Graph.getConnectedComponents(): List<Graph> {
             for (vertex in bfsTree.vertices) {
                 addVertex(vertex)
                 // Gets all neighbors in the [this] graph
-                for (edge in this@getConnectedComponents.edgesOf(vertex)) {
+                for (edge in this@getUndirectedConnectedComponents.edgesOf(vertex)) {
                     addEdge(edge)
                 }
             }

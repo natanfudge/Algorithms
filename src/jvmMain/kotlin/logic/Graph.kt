@@ -70,6 +70,7 @@ interface Graph {
 
 }
 
+
 fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit ) : Graph = Graph.Builder(directed).apply(builder).build()
 
 class LinkedListGraph(
@@ -91,7 +92,7 @@ class LinkedListGraph(
     override fun edgesOf(vertex: Vertex): List<Edge> = neighbors[vertex]!!
 
     override fun toString(): String {
-        return "${vertices.size} vertices, ${edges.size} edges (isDirected = ${isDirected})"
+        return "${vertices.size} vertices, ${edges.size} edges (${if(isDirected) "Directed" else "Undirected"})"
     }
 
 
