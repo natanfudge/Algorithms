@@ -23,8 +23,6 @@ import kotlin.math.sqrt
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
-
 
     // (1.0, 0.0, 0.0)
     val a = Color.Red
@@ -57,6 +55,7 @@ fun App() {
         e edgeTo f
         b edgeTo a
         c edgeTo b
+        b edgeTo f
 
         a2 edgeTo b2
         b2 edgeTo c2
@@ -72,15 +71,40 @@ fun App() {
 
     Column {
         GraphUi(graph, Modifier.padding(10.dp).weight(1f))
-        GraphUi( graph.bfs(graph.vertices[2]), Modifier.padding(10.dp).weight(1f))
+        GraphUi( graph.bfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
     }
 
 }
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
 //TODO: special placement for tree graphs
-private fun Graph.chooseVertexPositions(): List<Offset> {
-    return when (vertices.size) {
+private fun Graph.chooseVertexPositions(): Map<Vertex,Offset> {
+    return if(isTree()) treePositions() else regularGraphPositions()
+}
+
+private fun Graph.treePositions(): Map<Vertex,Offset> {
+    val layers = mutableListOf(listOf(root()))
+    while (layers.sumOf { it.size } < vertices.size){
+        layers.add(layers.last().flatMap { neighborsOf(it) })
+    }
+
+    val positions=  mutableMapOf<Vertex, Offset>()
+
+    val depth = layers.size
+    for((layerIndex, layerVertices) in layers.withIndex()) {
+        val yOffset = (layerIndex + 1f) / (depth + 1f)
+        val layerWidth = layerVertices.size
+        for((vertexInLayerIndex, vertexInLayer) in layerVertices.withIndex()){
+            val xOffset = (vertexInLayerIndex + 1f) / (layerWidth + 1f)
+            positions[vertexInLayer] = Offset(xOffset,yOffset)
+        }
+    }
+
+    return positions
+}
+
+private fun Graph.regularGraphPositions(): Map<Vertex,Offset> {
+    val positionList = when (vertices.size) {
         0 -> listOf()
         1 -> listOf(Offset(0.5f, 0.5f))
         2 -> listOf(Offset(0.0f, 0.5f), Offset(1f, 0.5f))
@@ -89,6 +113,12 @@ private fun Graph.chooseVertexPositions(): List<Offset> {
         else -> List(vertices.size) { i ->
             val degree = 2.0 * PI * i / vertices.size
             Offset(cos(degree).toFloat(), sin(degree).toFloat()) / 2F + Offset(0.5f, 0.5f)
+        }
+    }
+
+    return buildMap {
+        for((i, position) in positionList.withIndex()){
+            put(vertices[i], position)
         }
     }
 }
@@ -111,8 +141,8 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) = Canvas(modifier.fillM
 
 fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
     val positions = graph.chooseVertexPositions()
-        .map { placeVertex(it, bounds) }
-    for ((position, vertex) in positions.zip(graph.vertices)) {
+        .mapValues {(_, pos) -> placeVertex(pos, bounds) }
+    positions.forEach { (vertex, position) ->
         drawVertex(vertex, position)
     }
 
@@ -149,9 +179,9 @@ fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
 const val VertexRadius = 20f
 
 
-fun DrawScope.drawEdge(edge: Edge, vertexPositions: List<Offset>, directed: Boolean) {
-    val start = vertexPositions[edge.start.index]
-    val end = vertexPositions[edge.end.index]
+fun DrawScope.drawEdge(edge: Edge, vertexPositions: Map<Vertex,Offset>, directed: Boolean) {
+    val start = vertexPositions[edge.start]!!
+    val end = vertexPositions[edge.end]!!
 
     val startToVertex = shortenedLine(end, start, shortenBy = VertexRadius)
     val endToVertex = shortenedLine(start, end, shortenBy = VertexRadius)

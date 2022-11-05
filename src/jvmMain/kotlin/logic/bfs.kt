@@ -1,6 +1,12 @@
 package logic
 
-fun Graph.bfs(root: Vertex): Graph {
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
+data class RootedTree(val root: Vertex, private val graph: Graph): Graph by graph
+
+
+fun Graph.bfs(root: Vertex): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
     bfsTree.addVertex(root)
     val visited = hashSetOf(root)
@@ -16,7 +22,7 @@ fun Graph.bfs(root: Vertex): Graph {
         currentLayer = nextLayer.map { it.end }
     } while (currentLayer.isNotEmpty())
 
-    return bfsTree.build()
+    return RootedTree(root,bfsTree.build())
 }
 
 
@@ -24,6 +30,7 @@ fun Graph.getConnectedComponents(): List<Graph> {
     if (!isDirected) {
         return getUndirectedConnectedComponents()
     } else {
+        if(isTree()) return listOf(this)
         val (undirected, neighborMap) = undirect()
         return undirected.getUndirectedConnectedComponents().map { it.direct(neighborMap) }
     }
@@ -50,3 +57,12 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
         }
     }
 }
+
+fun Graph.isTree(): Boolean {
+    if(this is RootedTree) return true
+    if(vertices.isEmpty()) return false
+    val bfsTree = bfs(vertices[0])
+    return bfsTree.vertices.size == vertices.size
+}
+
+ fun Graph.root() = if (this is RootedTree) root else vertices[0]
