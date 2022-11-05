@@ -4,7 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -71,39 +71,40 @@ fun App() {
 
     Column {
         GraphUi(graph, Modifier.padding(10.dp).weight(1f))
-        GraphUi( graph.bfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
+        GraphUi(graph.bfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
+        GraphUi(graph.dfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
     }
 
 }
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
 //TODO: special placement for tree graphs
-private fun Graph.chooseVertexPositions(): Map<Vertex,Offset> {
-    return if(isTree()) treePositions() else regularGraphPositions()
+private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
+    return if (isTree()) treePositions() else regularGraphPositions()
 }
 
-private fun Graph.treePositions(): Map<Vertex,Offset> {
+private fun Graph.treePositions(): Map<Vertex, Offset> {
     val layers = mutableListOf(listOf(root()))
-    while (layers.sumOf { it.size } < vertices.size){
+    while (layers.sumOf { it.size } < vertices.size) {
         layers.add(layers.last().flatMap { neighborsOf(it) })
     }
 
-    val positions=  mutableMapOf<Vertex, Offset>()
+    val positions = mutableMapOf<Vertex, Offset>()
 
     val depth = layers.size
-    for((layerIndex, layerVertices) in layers.withIndex()) {
+    for ((layerIndex, layerVertices) in layers.withIndex()) {
         val yOffset = (layerIndex + 1f) / (depth + 1f)
         val layerWidth = layerVertices.size
-        for((vertexInLayerIndex, vertexInLayer) in layerVertices.withIndex()){
+        for ((vertexInLayerIndex, vertexInLayer) in layerVertices.withIndex()) {
             val xOffset = (vertexInLayerIndex + 1f) / (layerWidth + 1f)
-            positions[vertexInLayer] = Offset(xOffset,yOffset)
+            positions[vertexInLayer] = Offset(xOffset, yOffset)
         }
     }
 
     return positions
 }
 
-private fun Graph.regularGraphPositions(): Map<Vertex,Offset> {
+private fun Graph.regularGraphPositions(): Map<Vertex, Offset> {
     val positionList = when (vertices.size) {
         0 -> listOf()
         1 -> listOf(Offset(0.5f, 0.5f))
@@ -117,7 +118,7 @@ private fun Graph.regularGraphPositions(): Map<Vertex,Offset> {
     }
 
     return buildMap {
-        for((i, position) in positionList.withIndex()){
+        for ((i, position) in positionList.withIndex()) {
             put(vertices[i], position)
         }
     }
@@ -129,7 +130,7 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) = Canvas(modifier.fillM
     val connectedComponents = graph.getConnectedComponents()
     val n = connectedComponents.size
     for ((i, component) in connectedComponents.withIndex()) {
-        val padding = if(i == 0) 0f else 10f
+        val padding = if (i == 0) 0f else 10f
         val componentWidth = size.width / n
         drawGraph(
             component,
@@ -141,7 +142,7 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) = Canvas(modifier.fillM
 
 fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
     val positions = graph.chooseVertexPositions()
-        .mapValues {(_, pos) -> placeVertex(pos, bounds) }
+        .mapValues { (_, pos) -> placeVertex(pos, bounds) }
     positions.forEach { (vertex, position) ->
         drawVertex(vertex, position)
     }
@@ -176,10 +177,11 @@ fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
     drawLine(color, end, positionedLineA)
     drawLine(color, end, positionedLineB)
 }
+
 const val VertexRadius = 20f
 
 
-fun DrawScope.drawEdge(edge: Edge, vertexPositions: Map<Vertex,Offset>, directed: Boolean) {
+fun DrawScope.drawEdge(edge: Edge, vertexPositions: Map<Vertex, Offset>, directed: Boolean) {
     val start = vertexPositions[edge.start]!!
     val end = vertexPositions[edge.end]!!
 

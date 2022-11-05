@@ -18,6 +18,8 @@ interface Graph {
             return vertices.add(vertex)
         }
 
+        operator fun contains(vertex: Vertex) = vertex.tag in vertices
+
         fun addVertex(vertex: Vertex) = addVertex(vertex.tag)
 
 //        fun addVertices(vararg vertices: VertexTag) {

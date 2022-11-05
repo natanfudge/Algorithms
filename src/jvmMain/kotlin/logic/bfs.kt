@@ -1,10 +1,12 @@
 package logic
 
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
+data class RootedTree(val root: Vertex, private val graph: Graph) : Graph by graph
 
-data class RootedTree(val root: Vertex, private val graph: Graph): Graph by graph
+fun Graph.genericSearch(root: Vertex, vertexTracker: MutableCollection<Vertex>): RootedTree {
+    val bfsTree = Graph.Builder(directed = this.isDirected)
 
+
+}
 
 fun Graph.bfs(root: Vertex): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
@@ -22,7 +24,51 @@ fun Graph.bfs(root: Vertex): RootedTree {
         currentLayer = nextLayer.map { it.end }
     } while (currentLayer.isNotEmpty())
 
-    return RootedTree(root,bfsTree.build())
+    return RootedTree(root, bfsTree.build())
+}
+fun Graph.bfsObfuscatedByEvaTardosh(root: Vertex): RootedTree {
+    val T = Graph.Builder(directed = this.isDirected)
+    T.addVertex(root)
+    val discovered = hashSetOf(root)
+
+    var currentL = listOf(root)
+    do {
+        val nextL = mutableListOf<Vertex>()
+        for(u in currentL){
+            for(v in neighborsOf(u)){
+                if(v !in discovered){
+                    T.addEdge(u,v)
+                    nextL.add(v)
+                }
+            }
+        }
+        currentL = nextL
+//        val nextLayer = currentL.flatMap { vertexInLayer -> edgesOf(vertexInLayer).filter { it.end !in discovered } }
+//        for (edge in nextLayer) {
+//            T.addEdge(edge)
+//            T.addVertex(edge.end)
+//            discovered.add(edge.end)
+//        }
+//        currentL = nextLayer.map { it.end }
+    } while (currentL.isNotEmpty())
+
+    return RootedTree(root, T.build())
+}
+
+fun Graph.dfs(root: Vertex): RootedTree {
+    val dfsTree = Graph.Builder(isDirected)
+    dfsRecur(root, dfsTree)
+    return RootedTree(root, dfsTree.build())
+}
+
+private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder) {
+    dfsTree.addVertex(root)
+    for (edge in edgesOf(root)) {
+        if (edge.end !in dfsTree) {
+            dfsTree.addEdge(edge)
+            dfsRecur(edge.end, dfsTree)
+        }
+    }
 }
 
 
@@ -30,7 +76,7 @@ fun Graph.getConnectedComponents(): List<Graph> {
     if (!isDirected) {
         return getUndirectedConnectedComponents()
     } else {
-        if(isTree()) return listOf(this)
+        if (isTree()) return listOf(this)
         val (undirected, neighborMap) = undirect()
         return undirected.getUndirectedConnectedComponents().map { it.direct(neighborMap) }
     }
@@ -59,10 +105,10 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
 }
 
 fun Graph.isTree(): Boolean {
-    if(this is RootedTree) return true
-    if(vertices.isEmpty()) return false
+    if (this is RootedTree) return true
+    if (vertices.isEmpty()) return false
     val bfsTree = bfs(vertices[0])
     return bfsTree.vertices.size == vertices.size
 }
 
- fun Graph.root() = if (this is RootedTree) root else vertices[0]
+fun Graph.root() = if (this is RootedTree) root else vertices[0]
