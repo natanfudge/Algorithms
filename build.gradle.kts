@@ -22,9 +22,11 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "11"
+            kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
         }
         withJava()
     }
+
     sourceSets {
         val jvmMain by getting {
             dependencies {

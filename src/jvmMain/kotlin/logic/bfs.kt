@@ -5,7 +5,7 @@ data class RootedTree(val root: Vertex, private val graph: Graph) : Graph by gra
 fun Graph.genericSearch(root: Vertex, vertexTracker: MutableCollection<Vertex>): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
 
-
+    TODO()
 }
 
 fun Graph.bfs(root: Vertex): RootedTree {
