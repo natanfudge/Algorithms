@@ -17,6 +17,8 @@ repositories {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
+dependencies {
+}
 
 kotlin {
     jvm {
@@ -36,7 +38,11 @@ kotlin {
                 implementation("org.jetbrains.compose.foundation:foundation-desktop:$composeVersion")
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation("junit:junit:4.13.2")
+            }
+        }
     }
 }
 

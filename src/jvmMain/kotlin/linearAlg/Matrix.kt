@@ -1,5 +1,7 @@
 package linearAlg
 
+import java.util.Objects
+
 typealias TwoDimArray<T> = List<List<T>>
 typealias MutableTwoDimArray<T> = MutableList<MutableList<T>>
 
@@ -55,6 +57,14 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        return other is Matrix<*> && this.rows == other.rows
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(*rows.toTypedArray())
+    }
+
     override fun toString(): String {
         val ceiling = "┏" + floorString('┳', '┓')
         val intermediateFloor = "┣" + floorString('╋','┫')
@@ -62,8 +72,7 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
         return buildString {
             append(ceiling)
             for ((i, row) in _rows.withIndex()) {
-                val rowString = "┃" + row.joinToString("┃") + "┃\n"
-                append(rowString)
+                append(rowString(row))
                 if (i != _rows.size - 1) append(intermediateFloor)
             }
             append(floor)
@@ -72,7 +81,15 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
 
     private fun rowString(row: List<T>) = buildString {
         append('┃')
-        repeat()
+        for((i, item) in row.withIndex()){
+            val space = columnWidth(i) - item.toString().length
+            append(" ".repeat(space / 2))
+            append(item)
+            append(" ".repeat(space / 2))
+            if(space % 2 == 1) append(" ")
+            append('┃')
+        }
+        append('\n')
     }
 
     private fun floorString(edge: Char, ending: Char) = buildString {
@@ -88,3 +105,5 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
         return columns[column].maxOf { it.toString().length }
     }
 }
+
+fun <T>matrix(builder: Matrix.RowBuilder<T>.() -> Unit) = Matrix.RowBuilder<T>().apply(builder).build()

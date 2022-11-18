@@ -1,0 +1,4 @@
+package linearAlg
+
+interface LinearSpace {
+}
