@@ -1,7 +1,29 @@
 package linearAlg
 
-fun main(args: Array<String>) {
-    val matrix = Matrix.Builder<Int>(3,2).also {
+fun main() {
+    val matrix = Matrix.RowBuilder<Int>().apply {
+        row(1,2,5)
+        row(3,4,6)
+    }.build()
+
+    val matrix2  = Matrix.RowBuilder<Int>().apply {
+        row(1,2, 9)
+        row(3,4, 8)
+        row(5,6, 7)
+    }.build()
+
+    println(matrix)
+    println(matrix2)
+
+    with(RealNumbers){
+        println(matrix.multiply(matrix2))
+    }
+//    println(matrix.rows)
+//    println(matrix.columns)
+}
+
+fun mainOld(args: Array<String>) {
+    val matrix = Matrix.IndexBuilder<Int>(2,3).also {
         it[0,0] = 1
         it[0,1] = 2
         it[1,0] = 3
@@ -10,7 +32,7 @@ fun main(args: Array<String>) {
         it[1,2] = 6
     }.build()
 
-    val matrix2  = Matrix.Builder<Int>(2,3).also {
+    val matrix2  = Matrix.IndexBuilder<Int>(3,2).also {
         it[0,0] = 1
         it[0,1] = 2
         it[1,0] = 3
@@ -22,7 +44,9 @@ fun main(args: Array<String>) {
     println(matrix)
     println(matrix2)
 
-    println(matrix.multiply(matrix2))
+    with(RealNumbers){
+        println(matrix.multiply(matrix2))
+    }
 //    println(matrix.rows)
 //    println(matrix.columns)
 }

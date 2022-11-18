@@ -1,17 +1,31 @@
 package linearAlg
 
+import linearAlg.RealNumbers.plus
+
 interface Field<T> {
     operator fun  T.plus(other: T) : T
     operator fun  T.times(other: T): T
 }
 
-object RealNumbers : Field<Int> {
+object RealNumbers : Field<Number> {
     override fun Number.plus(other: Number): Number {
-        return this + other
+        return when(this){
+            is Int -> {
+                require(other is Int)
+               this + other
+            }
+            else -> this.toDouble() + other.toDouble()
+        }
     }
 
     override fun Number.times(other: Number): Number {
-        TODO("Not yet implemented")
+        return when(this){
+            is Int -> {
+                require(other is Int)
+                this * other
+            }
+            else -> this.toDouble() + other.toDouble()
+        }
     }
 
 }
