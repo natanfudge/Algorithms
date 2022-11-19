@@ -68,4 +68,61 @@ class Tests {
 
 
     }
+    @Test
+    fun testDeterminant() = with(RealNumbers){
+        val matrix = matrix {
+            row(1,2,3,4,5)
+            row(3,4,5,6,7)
+            row(1,1,1,1,1)
+            row(2,2,2,2,2)
+            row(3,3,3,3,3)
+        }
+
+        val res = matrix.determinant()
+
+        println(res)
+
+        Assert.assertEquals(0, res)
+
+        val matrix2 = matrix {
+            row(4,2,3,4,5)
+            row(3,11,5,6,7)
+            row(1,1,9,1,1)
+            row(2,23,2,2,2)
+            row(3,34,3,3,3)
+        }
+
+        val res2 = matrix2.determinant()
+
+        println(res2)
+
+        Assert.assertEquals(24, res2)
+
+
+    }
+
+    @Test
+    fun identity(){
+        println(Matrix.identity(5))
+    }
+    @Test
+    fun transposed(){
+        println(matrix {
+            row(1,2,3,4,5)
+            row(3,4,5,6,7)
+            row(1,1,1,1,1)
+            row(2,2,2,2,2)
+            row(3,3,3,3,3)
+        }.transposed())
+    }
+    @Test
+    fun adjugate() = with(RealNumbers){
+        println(matrix {
+            row(4,2,3,4,5)
+            row(3,11,5,6,7)
+            row(1,1,9,1,1)
+            row(2,23,2,2,2)
+            row(3,34,3,3,3)
+        }.adjugate())
+    }
 }

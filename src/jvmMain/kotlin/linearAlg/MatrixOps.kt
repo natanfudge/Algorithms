@@ -17,6 +17,13 @@ fun <T> Matrix<T>.forEachIndexed(iterator: (row: Int, column: Int, item: T) -> U
     }
 }
 
+fun <T> Matrix<T>.mapIndexed(map: (row: Int, column: Int, item: T) -> T) = Matrix.IndexBuilder<T>(height, width)
+    .also { builder ->
+        forEachIndexed { row, column, item ->
+            builder[row,column] = map(row, column, item)
+        }
+    }.build()
+
 context (Field<T>)
 fun <T> Matrix<T>.multiply(other: Matrix<T>): Matrix<T> {
     require(this.width == other.height)
@@ -37,10 +44,11 @@ fun <T> Matrix<T>.determinant(): T {
         1 -> return this[0, 0]
         2 -> return this[0, 0] * this[1, 1] - this[0, 1] * this[1, 0]
         else -> {
-
+            return List(size) { i ->
+                (this[0, i] * minor(0, i).determinant()).negativeOnOddIndex(i)
+            }.sum()
         }
     }
-    TODO()
 }
 
 
@@ -50,10 +58,21 @@ fun <T> Matrix<T>.minor(removedRow: Int, removedColumn: Int): Matrix<T> {
     require(size >= 2)
     val result = Matrix.IndexBuilder<T>(size - 1, size - 1)
     forEachIndexed { row, column, item ->
-        if(row == removedRow || column == removedColumn) return@forEachIndexed
-        val insertedRow = if(row < removedRow) row else row - 1
-        val insertedColumn = if(column < removedColumn) column else column - 1
-        result[insertedRow,insertedColumn] = item
+        if (row == removedRow || column == removedColumn) return@forEachIndexed
+        val insertedRow = if (row < removedRow) row else row - 1
+        val insertedColumn = if (column < removedColumn) column else column - 1
+        result[insertedRow, insertedColumn] = item
     }
     return result.build()
+}
+
+fun <T> Matrix<T>.transposed(): Matrix<T> = Matrix.IndexBuilder<T>(width, height).apply {
+    forEachIndexed { i, j, item ->
+        this[j, i] = item
+    }
+}.build()
+
+context (Field<T>)
+fun <T> Matrix<T>.adjugate() = mapIndexed { i, j, _ ->
+    minor(j, i).determinant().negativeOnOddIndex(i + j)
 }

@@ -1,11 +1,22 @@
 package linearAlg
 
-import java.util.Objects
+import java.util.*
 
 typealias TwoDimArray<T> = List<List<T>>
 typealias MutableTwoDimArray<T> = MutableList<MutableList<T>>
 
 class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
+    companion object {
+        fun identity(order: Int) = IndexBuilder<Int>(order, order).also { builder ->
+            repeat(order) { i ->
+                repeat(order) { j ->
+                    if (i == j) builder[i, j] = 1
+                    else builder[i, j] = 0
+                }
+            }
+        }.build()
+    }
+
     init {
         require(_rows.isNotEmpty())
         require(_rows[0].isNotEmpty())
@@ -48,7 +59,7 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
         private val rows: MutableList<Series<T>> = mutableListOf()
 
         fun row(vararg values: T) {
-            if(rows.isNotEmpty()) require(values.size == rows[0].size)
+            if (rows.isNotEmpty()) require(values.size == rows[0].size)
             rows.add(Series(values.toList()))
         }
 
@@ -67,8 +78,8 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
 
     override fun toString(): String {
         val ceiling = "┏" + floorString('┳', '┓')
-        val intermediateFloor = "┣" + floorString('╋','┫')
-        val floor = "┗"  + floorString('┻','┛')
+        val intermediateFloor = "┣" + floorString('╋', '┫')
+        val floor = "┗" + floorString('┻', '┛')
         return buildString {
             append(ceiling)
             for ((i, row) in _rows.withIndex()) {
@@ -81,12 +92,12 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
 
     private fun rowString(row: List<T>) = buildString {
         append('┃')
-        for((i, item) in row.withIndex()){
+        for ((i, item) in row.withIndex()) {
             val space = columnWidth(i) - item.toString().length
             append(" ".repeat(space / 2))
             append(item)
             append(" ".repeat(space / 2))
-            if(space % 2 == 1) append(" ")
+            if (space % 2 == 1) append(" ")
             append('┃')
         }
         append('\n')
@@ -106,4 +117,4 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
     }
 }
 
-fun <T>matrix(builder: Matrix.RowBuilder<T>.() -> Unit) = Matrix.RowBuilder<T>().apply(builder).build()
+fun <T> matrix(builder: Matrix.RowBuilder<T>.() -> Unit) = Matrix.RowBuilder<T>().apply(builder).build()

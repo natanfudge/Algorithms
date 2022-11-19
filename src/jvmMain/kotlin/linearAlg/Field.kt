@@ -64,3 +64,12 @@ fun <T, L> List<T>.sumOf(selector: (T) -> L): L {
     }
     return sum
 }
+context (Field<T>)
+fun <T> List<T>.sum(): T {
+    return sumOf { it }
+}
+
+context (Field<T>)
+fun <T> T.negativeOnOddIndex(index: Int) = if(index % 2 == 0) this else -this
+context (Field<T>)
+fun <T> T.negativeOnEvenIndex(index: Int) = if(index % 2 == 0) -this else this
