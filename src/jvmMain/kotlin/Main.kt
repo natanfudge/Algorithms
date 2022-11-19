@@ -14,7 +14,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import logic.*
+import algorithms.*
+import java.util.Stack
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -25,27 +26,27 @@ import kotlin.math.sqrt
 fun App() {
 
     // (1.0, 0.0, 0.0)
-    val a = Color.Red
+    val a = Color.Red named "Red"
     // (0.0, 1.0, 0.0)
-    val b = Color.Green
+    val b = Color.Green named "Green"
     // (0.0, 0.0, 1.0)
-    val c = Color.Blue
+    val c = Color.Blue named "Blue"
     // (0.0, 0.0, 0.0)
-    val d = Color.Black
+    val d = Color.Black named "Black"
     // (0.0, 1.0, 1.0)
-    val e = Color.Cyan
+    val e = Color.Cyan named "Cyan"
     // (1.0, 1.0, 0.0)
-    val f = Color.Yellow
+    val f = Color.Yellow named "Yellow"
 
-    val a2 = Color.Red.copy(alpha = 0.5f)
-    val b2 = Color.Green.copy(alpha = 0.5f)
-    val c2 = Color.Blue.copy(alpha = 0.5f)
-    val d2 = Color.Black.copy(alpha = 0.5f)
-    val e2 = Color.Cyan.copy(alpha = 0.5f)
-    val f2 = Color.Yellow.copy(alpha = 0.5f)
+    val a2 = Color.Red.copy(alpha = 0.5f) named "OffRed"
+    val b2 = Color.Green.copy(alpha = 0.5f) named "OffGreen"
+    val c2 = Color.Blue.copy(alpha = 0.5f)  named "OffBlue"
+    val d2 = Color.Black.copy(alpha = 0.5f) named "OffBlack"
+    val e2 = Color.Cyan.copy(alpha = 0.5f) named "OffCyan"
+    val f2 = Color.Yellow.copy(alpha = 0.5f) named "OffYellow"
 
-    val a3 = Color.Red.copy(alpha = 0.2f)
-    val b3 = Color.Green.copy(alpha = 0.2f)
+    val a3 = Color.Red.copy(alpha = 0.2f) named "OffOffRed"
+    val b3 = Color.Green.copy(alpha = 0.2f) named "OffOffGreen"
 
     val graph = Graph.Builder(directed = true).apply {
         a edgeTo b
@@ -67,18 +68,21 @@ fun App() {
         a3 edgeTo b3
     }.build()
 
+    val orderedGraph = graph.vertices.first { it.tag == c }
+    val bfs = graph.bfs(orderedGraph)
+    val dfs = graph.dfs(orderedGraph)
 
 
     Column {
         GraphUi(graph, Modifier.padding(10.dp).weight(1f))
-        GraphUi(graph.bfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
-        GraphUi(graph.dfs(graph.vertices.first { it.tag == c }), Modifier.padding(10.dp).weight(1f))
+        GraphUi(bfs, Modifier.padding(10.dp).weight(1f))
+        GraphUi(dfs, Modifier.padding(10.dp).weight(1f))
     }
 
 }
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
-//TODO: special placement for tree graphs
+//TODO: special ordering for topologically ordered graph
 private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
     return if (isTree()) treePositions() else regularGraphPositions()
 }
@@ -217,7 +221,7 @@ private fun placeVertex(relativePosition: Offset, bounds: Rect): Offset {
 }
 
 private fun DrawScope.drawVertex(vertex: Vertex, position: Offset) {
-    drawCircle(vertex.tag, center = position, radius = VertexRadius)
+    drawCircle(vertex.color, center = position, radius = VertexRadius)
 }
 
 fun main() = application {

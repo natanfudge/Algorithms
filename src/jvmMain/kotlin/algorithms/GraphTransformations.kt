@@ -1,4 +1,4 @@
-package logic
+package algorithms
 
 /**
  * Returns the undirected version of the graph and the list of neighbors of each vertex in the original graph.

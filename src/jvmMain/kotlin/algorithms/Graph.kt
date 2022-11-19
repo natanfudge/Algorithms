@@ -1,4 +1,4 @@
-package logic
+package algorithms
 
 import androidx.compose.ui.graphics.Color
 
@@ -14,7 +14,7 @@ interface Graph {
         private val vertices = mutableSetOf<VertexTag>()
         private val edges = mutableSetOf<Edge.Builder>()
         fun addVertex(vertex: VertexTag): Boolean {
-            require(vertex !in vertices)
+            if (vertex in vertices) return false
             return vertices.add(vertex)
         }
 
@@ -31,26 +31,29 @@ interface Graph {
         }
 
         infix fun VertexTag.edgeTo(other: VertexTag): Boolean {
-//            val existingTags = vertices.map { it.tag }
-            if (this !in vertices) addVertex(this)
-            if (other !in vertices) addVertex(other)
             return addEdge(this, other)
         }
 
         fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, directed))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
-        fun addEdge(edge: Edge.Builder) = edges.add(edge)
+        fun addEdge(edge: Edge.Builder): Boolean {
+            edge.vertices.forEach {
+                if (it !in vertices) addVertex(it)
+            }
+            return edges.add(edge)
+        }
+
         fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
         fun build(): LinkedListGraph {
-            val verticesOrdered = vertices.sortedBy { it.value }
+            val verticesOrdered = vertices.sortedBy { it.color.value }
             val vertexToIndex = buildMap {
                 verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
             }
 
             fun VertexTag.build() = Vertex(tag = this, index = vertexToIndex.getValue(this))
             fun Edge.Builder.build(): Edge {
-                val (start,end) = when (this) {
+                val (start, end) = when (this) {
                     is Edge.Builder.Undirected -> {
                         val asList = this.vertices.toList()
                         asList[0] to asList[1]
@@ -73,7 +76,8 @@ interface Graph {
 }
 
 
-fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit ) : Graph = Graph.Builder(directed).apply(builder).build()
+fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
+    Graph.Builder(directed).apply(builder).build()
 
 class LinkedListGraph(
     override val vertices: List<Vertex>,
@@ -94,31 +98,41 @@ class LinkedListGraph(
     override fun edgesOf(vertex: Vertex): List<Edge> = neighbors[vertex]!!
 
     override fun toString(): String {
-        return "${vertices.size} vertices, ${edges.size} edges (${if(isDirected) "Directed" else "Undirected"})"
+        return "${vertices.size} vertices, ${edges.size} edges (${if (isDirected) "Directed" else "Undirected"})"
     }
 
 
 }
 
 
-data class Vertex(val tag: Color, val index: Int) {
-    override fun toString(): String = "($tag)"
-    override fun equals(other: Any?): Boolean  = other is Vertex && other.tag == tag
+data class Vertex(val color: Color, val index: Int, val name: String) {
+    constructor(tag: VertexTag, index: Int) : this(tag.color, index, tag.name)
+
+    val tag = VertexTag(color, name)
+    override fun toString(): String = "($name)"
+    override fun equals(other: Any?): Boolean = other is Vertex && other.tag == tag
     override fun hashCode(): Int = tag.hashCode()
 }
 
-typealias VertexTag = Color
+data class VertexTag(val color: Color, val name: String)
+
+infix fun Color.named(name: String) = VertexTag(this,name)
 //data class VertexTag(val tag)
 
 data class Edge(val start: Vertex, val end: Vertex) {
     sealed interface Builder {
+        val vertices: Set<VertexTag>
+
         companion object {
             fun create(start: VertexTag, end: VertexTag, directed: Boolean) = if (directed) Directed(start, end)
             else Undirected(setOf(start, end))
         }
 
-        data class Directed(val start: VertexTag, val end: VertexTag) : Builder
-        data class Undirected(val vertices: Set<VertexTag>) : Builder
+        data class Directed(val start: VertexTag, val end: VertexTag) : Builder {
+            override val vertices: Set<VertexTag> = setOf(start, end)
+        }
+
+        data class Undirected(override val vertices: Set<VertexTag>) : Builder
     }
 //    data class Builder(val start: VertexTag, val end: VertexTag)
 }

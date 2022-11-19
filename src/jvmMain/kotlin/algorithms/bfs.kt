@@ -1,11 +1,49 @@
-package logic
+package algorithms
+
+import java.util.*
 
 data class RootedTree(val root: Vertex, private val graph: Graph) : Graph by graph
 
-fun Graph.genericSearch(root: Vertex, vertexTracker: MutableCollection<Vertex>): RootedTree {
-    val bfsTree = Graph.Builder(directed = this.isDirected)
+interface VertexTracker<T : MutableCollection<Vertex>> {
+    val empty: T
+    fun remove(collection: T): Vertex
+}
 
-    TODO()
+object QueueVertexTracker : VertexTracker<Queue<Vertex>> {
+    override val empty: Queue<Vertex> = LinkedList()
+    override fun remove(collection: Queue<Vertex>): Vertex {
+        return collection.remove()
+    }
+}
+
+object StackVertexTracker : VertexTracker<Stack<Vertex>> {
+    override val empty: Stack<Vertex> = Stack()
+    override fun remove(collection: Stack<Vertex>): Vertex {
+        return collection.pop()
+    }
+}
+
+
+fun <T : MutableCollection<Vertex>> Graph.genericSearchB(root: Vertex, vertexTracker: VertexTracker<T>): RootedTree {
+    val T = Graph.Builder(directed = this.isDirected)
+    T.addVertex(root)
+    val discovered = hashSetOf(root)
+
+    val queue = vertexTracker.empty
+    queue.add(root)
+
+    while (queue.isNotEmpty()) {
+        val u = vertexTracker.remove(queue)
+        val unvisitedNeighbor = neighborsOf(u).find { it !in discovered }
+        if(unvisitedNeighbor != null){
+            queue.add(u)
+            discovered.add(unvisitedNeighbor)
+            queue.add(unvisitedNeighbor)
+            T.addEdge(u, unvisitedNeighbor)
+        }
+    }
+
+    return RootedTree(root, T.build())
 }
 
 fun Graph.bfs(root: Vertex): RootedTree {
@@ -26,6 +64,7 @@ fun Graph.bfs(root: Vertex): RootedTree {
 
     return RootedTree(root, bfsTree.build())
 }
+
 fun Graph.bfsObfuscatedByEvaTardosh(root: Vertex): RootedTree {
     val T = Graph.Builder(directed = this.isDirected)
     T.addVertex(root)
@@ -34,22 +73,15 @@ fun Graph.bfsObfuscatedByEvaTardosh(root: Vertex): RootedTree {
     var currentL = listOf(root)
     do {
         val nextL = mutableListOf<Vertex>()
-        for(u in currentL){
-            for(v in neighborsOf(u)){
-                if(v !in discovered){
-                    T.addEdge(u,v)
+        for (u in currentL) {
+            for (v in neighborsOf(u)) {
+                if (v !in discovered) {
+                    T.addEdge(u, v)
                     nextL.add(v)
                 }
             }
         }
         currentL = nextL
-//        val nextLayer = currentL.flatMap { vertexInLayer -> edgesOf(vertexInLayer).filter { it.end !in discovered } }
-//        for (edge in nextLayer) {
-//            T.addEdge(edge)
-//            T.addVertex(edge.end)
-//            discovered.add(edge.end)
-//        }
-//        currentL = nextLayer.map { it.end }
     } while (currentL.isNotEmpty())
 
     return RootedTree(root, T.build())
