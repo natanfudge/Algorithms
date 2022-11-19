@@ -1,7 +1,4 @@
-import linearAlg.Matrix
-import linearAlg.RealNumbers
-import linearAlg.matrix
-import linearAlg.multiply
+import linearAlg.*
 import org.junit.Assert
 import org.junit.Test
 
@@ -35,5 +32,40 @@ class Tests {
                 row(45,58)
             }, matrix.multiply(matrix2))
         }
+    }
+
+    @Test
+    fun testMinor() {
+        val matrix = matrix {
+            row(1,2,3,4,5)
+            row(3,4,5,6,7)
+            row(1,1,1,1,1)
+            row(2,2,2,2,2)
+            row(3,3,3,3,3)
+        }
+
+        val res1 = matrix.minor(0,0)
+        val res2 = matrix.minor(1,1)
+
+        println(matrix)
+        println(res1)
+        println(res2)
+
+        Assert.assertEquals(matrix {
+            row(4,5,6,7)
+            row(1,1,1,1)
+            row(2,2,2,2)
+            row(3,3,3,3)
+        },res1)
+
+
+        Assert.assertEquals(matrix {
+            row(1,3,4,5)
+            row(1,1,1,1)
+            row(2,2,2,2)
+            row(3,3,3,3)
+        },res2)
+
+
     }
 }

@@ -8,7 +8,7 @@ fun <T> Matrix<T>.forEach(iterator: (item: T) -> Unit) {
         }
     }
 }
-context (Field<T>)
+
 fun <T> Matrix<T>.forEachIndexed(iterator: (row: Int, column: Int, item: T) -> Unit) {
     for ((i, row) in rows.withIndex()) {
         for ((j, item) in row.withIndex()) {
@@ -43,13 +43,17 @@ fun <T> Matrix<T>.determinant(): T {
     TODO()
 }
 
-//context (Field<T>)
-//fun <T> Matrix<T>.minor(removedRow: Int, removedColumn: Int): Matrix<T> {
-//    require(width == height)
-//    val size = width
-//    require(size >= 2)
-//    val result = Matrix.IndexBuilder<T>(size - 1, size - 1)
-//    forEachIndexed { row, column, item ->
-//        if(row == removedRow || column == removedColumn)
-//    }
-//}
+
+fun <T> Matrix<T>.minor(removedRow: Int, removedColumn: Int): Matrix<T> {
+    require(width == height)
+    val size = width
+    require(size >= 2)
+    val result = Matrix.IndexBuilder<T>(size - 1, size - 1)
+    forEachIndexed { row, column, item ->
+        if(row == removedRow || column == removedColumn) return@forEachIndexed
+        val insertedRow = if(row < removedRow) row else row - 1
+        val insertedColumn = if(column < removedColumn) column else column - 1
+        result[insertedRow,insertedColumn] = item
+    }
+    return result.build()
+}
