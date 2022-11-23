@@ -9,42 +9,6 @@ interface VertexTracker<T : MutableCollection<Vertex>> {
     fun remove(collection: T): Vertex
 }
 
-object QueueVertexTracker : VertexTracker<Queue<Vertex>> {
-    override val empty: Queue<Vertex> = LinkedList()
-    override fun remove(collection: Queue<Vertex>): Vertex {
-        return collection.remove()
-    }
-}
-
-object StackVertexTracker : VertexTracker<Stack<Vertex>> {
-    override val empty: Stack<Vertex> = Stack()
-    override fun remove(collection: Stack<Vertex>): Vertex {
-        return collection.pop()
-    }
-}
-
-
-fun <T : MutableCollection<Vertex>> Graph.genericSearchB(root: Vertex, vertexTracker: VertexTracker<T>): RootedTree {
-    val T = Graph.Builder(directed = this.isDirected)
-    T.addVertex(root)
-    val discovered = hashSetOf(root)
-
-    val queue = vertexTracker.empty
-    queue.add(root)
-
-    while (queue.isNotEmpty()) {
-        val u = vertexTracker.remove(queue)
-        val unvisitedNeighbor = neighborsOf(u).find { it !in discovered }
-        if(unvisitedNeighbor != null){
-            queue.add(u)
-            discovered.add(unvisitedNeighbor)
-            queue.add(unvisitedNeighbor)
-            T.addEdge(u, unvisitedNeighbor)
-        }
-    }
-
-    return RootedTree(root, T.build())
-}
 
 fun Graph.bfs(root: Vertex): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
@@ -93,7 +57,7 @@ fun Graph.dfs(root: Vertex): RootedTree {
     return RootedTree(root, dfsTree.build())
 }
 
-private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder) {
+private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder<*>) {
     dfsTree.addVertex(root)
     for (edge in edgesOf(root)) {
         if (edge.end !in dfsTree) {

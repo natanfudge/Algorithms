@@ -2,15 +2,44 @@ package algorithms
 
 import androidx.compose.ui.graphics.Color
 
-interface Graph {
+val Graph.isDirected get() = this is Graph.Directed
+
+sealed interface Graph {
     val vertices: List<Vertex>
     val edges: List<Edge>
-    val isDirected: Boolean
+
+    interface Directed : Graph
+
+    interface Undirected : Graph
+
+//    val isDirected: Boolean
 
     fun neighborsOf(vertex: Vertex): List<Vertex>
     fun edgesOf(vertex: Vertex): List<Edge>
 
-    class Builder(private val directed: Boolean) {
+    companion object {
+        fun Builder(directed: Boolean) = if (directed) Builder.Directed() else Builder.Undirected()
+    }
+
+    sealed class Builder<T : Graph>(private val directed: Boolean) {
+
+        protected abstract fun constructLinkedListGraph(
+            vertices: List<Vertex>,
+            edges: List<Edge>
+        ): T
+
+        class Directed : Builder<Graph.Directed>(directed = true) {
+            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Directed {
+                return LinkedListGraph.Directed(vertices, edges)
+            }
+        }
+
+        class Undirected : Builder<Graph.Undirected>(directed = false) {
+            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Undirected {
+                return LinkedListGraph.Undirected(vertices, edges)
+            }
+        }
+
         private val vertices = mutableSetOf<VertexTag>()
         private val edges = mutableSetOf<Edge.Builder>()
         fun addVertex(vertex: VertexTag): Boolean {
@@ -45,7 +74,7 @@ interface Graph {
         }
 
         fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
-        fun build(): LinkedListGraph {
+        fun build(): T {
             val verticesOrdered = vertices.sortedBy { it.color.value }
             val vertexToIndex = buildMap {
                 verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
@@ -64,27 +93,39 @@ interface Graph {
                 return Edge(start = start.build(), end = end.build())
             }
 
-            return LinkedListGraph(
+            return constructLinkedListGraph(
                 verticesOrdered.map { it.build() },
                 edges.map { it.build() },
-                directed
             )
         }
     }
-
-
 }
 
 
-fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
-    Graph.Builder(directed).apply(builder).build()
+fun buildGraph(directed: Boolean, builder: Graph.Builder<*>.() -> Unit): Graph =
+    if (directed) buildDirectedGraph(builder) else buildUndirectedGraph(builder)
 
-class LinkedListGraph(
+fun buildDirectedGraph(builder: Graph.Builder.Directed.() -> Unit): Graph.Directed =
+    Graph.Builder.Directed().apply(builder).build()
+
+fun buildUndirectedGraph(builder: Graph.Builder.Undirected.() -> Unit): Graph.Undirected =
+    Graph.Builder.Undirected().apply(builder).build()
+
+sealed class LinkedListGraph(
     override val vertices: List<Vertex>,
     override val edges: List<Edge>,
-    override val isDirected: Boolean
 ) : Graph {
-    private val neighbors: Map<Vertex, List<Edge>> = kotlin.run {
+    class Directed(
+        vertices: List<Vertex>,
+        edges: List<Edge>
+    ) : Graph.Directed, LinkedListGraph(vertices, edges)
+
+    class Undirected(
+        vertices: List<Vertex>,
+        edges: List<Edge>
+    ) : Graph.Undirected, LinkedListGraph(vertices, edges)
+
+    private val neighbors: Map<Vertex, List<Edge>> = run {
         val map = vertices.associateWith { mutableListOf<Edge>() }
 
         for (edge in edges) {
@@ -116,7 +157,7 @@ data class Vertex(val color: Color, val index: Int, val name: String) {
 
 data class VertexTag(val color: Color, val name: String)
 
-infix fun Color.named(name: String) = VertexTag(this,name)
+infix fun Color.named(name: String) = VertexTag(this, name)
 //data class VertexTag(val tag)
 
 data class Edge(val start: Vertex, val end: Vertex) {
