@@ -5,7 +5,7 @@ import org.junit.Test
 class Tests {
     @Test
     fun testMultiplication() {
-        val matrix = Matrix.IndexBuilder<Int>(2, 3).also {
+        val matrix = Matrix.IndexBuilder.Any<Int>(2, 3).also {
             it[0, 0] = 1
             it[0, 1] = 2
             it[1, 0] = 3
@@ -14,7 +14,7 @@ class Tests {
             it[1, 2] = 6
         }.build()
 
-        val matrix2 = Matrix.IndexBuilder<Int>(3, 2).also {
+        val matrix2 = Matrix.IndexBuilder.Any<Int>(3, 2).also {
             it[0, 0] = 1
             it[0, 1] = 2
             it[1, 0] = 3

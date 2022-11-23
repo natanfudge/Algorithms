@@ -24,7 +24,3 @@ fun Graph.Directed.toplogicallySort(): List<Vertex>? {
 
 //TODO: test with successfull and unsucessful topological sort
 
-//
-//private fun Graph.Directed.calculateIncomingEdges(): Map<Vertex,List<Edge>>() {
-//
-//}

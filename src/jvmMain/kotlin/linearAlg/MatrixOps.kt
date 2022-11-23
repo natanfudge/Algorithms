@@ -17,17 +17,19 @@ fun <T> Matrix<T>.forEachIndexed(iterator: (row: Int, column: Int, item: T) -> U
     }
 }
 
-fun <T> Matrix<T>.mapIndexed(map: (row: Int, column: Int, item: T) -> T) = Matrix.IndexBuilder<T>(height, width)
+
+fun <T, M : Matrix<T>> M.mapIndexed(map: (row: Int, column: Int, item: T) -> T): M = Matrix.IndexBuilder.Any<T>(height, width)
     .also { builder ->
         forEachIndexed { row, column, item ->
             builder[row,column] = map(row, column, item)
         }
-    }.build()
+    }.build() as M
+
 
 context (Field<T>)
 fun <T> Matrix<T>.multiply(other: Matrix<T>): Matrix<T> {
     require(this.width == other.height)
-    val result = Matrix.IndexBuilder<T>(this.height, other.width)
+    val result = Matrix.IndexBuilder.Any<T>(this.height, other.width)
     for ((i, row) in rows.withIndex()) {
         for ((j, column) in other.columns.withIndex()) {
             result[i, j] = row.dotProduct(column)
@@ -36,9 +38,11 @@ fun <T> Matrix<T>.multiply(other: Matrix<T>): Matrix<T> {
     return result.build()
 }
 
+context(Field<T>)
+fun <T, M : Matrix<T>> M.multiplySquare(other: M): M  = multiply(other) as M
+
 context (Field<T>)
-fun <T> Matrix<T>.determinant(): T {
-    require(width == height)
+fun <T> Matrix.Square<T>.determinant(): T {
     val size = width
     when (size) {
         1 -> return this[0, 0]
@@ -52,11 +56,11 @@ fun <T> Matrix<T>.determinant(): T {
 }
 
 
-fun <T> Matrix<T>.minor(removedRow: Int, removedColumn: Int): Matrix<T> {
+fun <T> Matrix.Square<T>.minor(removedRow: Int, removedColumn: Int): Matrix.Square<T> {
     require(width == height)
     val size = width
     require(size >= 2)
-    val result = Matrix.IndexBuilder<T>(size - 1, size - 1)
+    val result = Matrix.IndexBuilder.Square<T>(size - 1)
     forEachIndexed { row, column, item ->
         if (row == removedRow || column == removedColumn) return@forEachIndexed
         val insertedRow = if (row < removedRow) row else row - 1
@@ -66,13 +70,14 @@ fun <T> Matrix<T>.minor(removedRow: Int, removedColumn: Int): Matrix<T> {
     return result.build()
 }
 
-fun <T> Matrix<T>.transposed(): Matrix<T> = Matrix.IndexBuilder<T>(width, height).apply {
+fun <T, M : Matrix<T>> M.transposed(): M = Matrix.IndexBuilder.Any<T>(width, height).apply {
     forEachIndexed { i, j, item ->
         this[j, i] = item
     }
-}.build()
+}.build() as M
 
+//TODO: keep going with adjugate and finding inverse matrix
 context (Field<T>)
-fun <T> Matrix<T>.adjugate() = mapIndexed { i, j, _ ->
+fun <T> Matrix.Square<T>.adjugate() = mapIndexed { i, j, _ ->
     minor(j, i).determinant().negativeOnOddIndex(i + j)
 }

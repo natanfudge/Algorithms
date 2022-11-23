@@ -5,9 +5,16 @@ import java.util.*
 typealias TwoDimArray<T> = List<List<T>>
 typealias MutableTwoDimArray<T> = MutableList<MutableList<T>>
 
-class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
+sealed class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
+    class NonSquare<out T>(_rows: TwoDimArray<T>) : Matrix<T>(_rows)
+    class Square<out T> (_rows: TwoDimArray<T>): Matrix<T>(_rows) {
+        init {
+            require(height == width)
+        }
+    }
+
     companion object {
-        fun identity(order: Int) = IndexBuilder<Int>(order, order).also { builder ->
+        fun identity(order: Int) = IndexBuilder.Square<Int>(order).also { builder ->
             repeat(order) { i ->
                 repeat(order) { j ->
                     if (i == j) builder[i, j] = 1
@@ -37,7 +44,16 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
     }
 
 
-    class IndexBuilder<T>(val height: Int, val width: Int) {
+    sealed class IndexBuilder<T, M: Matrix<T>>(val height: Int, val width: Int) {
+        protected abstract fun construct(rows: TwoDimArray<T>): M
+        class Any<T>(height: Int, width: Int) : IndexBuilder<T, Matrix<T>>(height,width) {
+            override fun construct(rows: TwoDimArray<T>): Matrix<T> = if(height == width) Square(rows)
+            else NonSquare(rows)
+        }
+        class Square<T>(val order: Int) : IndexBuilder<T,Matrix.Square<T>>(order,order) {
+            override fun construct(rows: TwoDimArray<T>): Matrix.Square<T>  = Square(rows)
+        }
+
         private val array: MutableTwoDimArray<T?> = MutableList(height) { MutableList(width) { null } }
         operator fun set(row: Int, column: Int, value: T) {
             require(row < height)
@@ -45,18 +61,27 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
             array[row][column] = value
         }
 
-        fun build(): Matrix<T> {
+        fun build(): M {
             val mappedToScalar = array.mapIndexed { rowNum, row ->
                 row.mapIndexed { colNum, col ->
                     requireNotNull(col) { "Value was not given to item at ($rowNum,$colNum)" }
                 }
             }
-            return Matrix(mappedToScalar)
+            return construct(mappedToScalar)
         }
     }
 
-    class RowBuilder<T> {
-        private val rows: MutableList<Series<T>> = mutableListOf()
+    sealed class RowBuilder<T, M: Matrix<T>> {
+        protected val rows: MutableList<Series<T>> = mutableListOf()
+
+        protected abstract fun construct(): M
+        class Any<T> : RowBuilder<T, Matrix<T>>() {
+            override fun construct(): Matrix<T> = if(rows.size  == rows[0].size) Square(rows)
+            else NonSquare(rows)
+        }
+        class Square<T> : RowBuilder<T,Matrix.Square<T>>() {
+            override fun construct(): Matrix.Square<T>  = Square(rows)
+        }
 
         fun row(vararg values: T) {
             if (rows.isNotEmpty()) require(values.size == rows[0].size)
@@ -64,7 +89,7 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
         }
 
         fun build(): Matrix<T> {
-            return Matrix(rows)
+            return construct()
         }
     }
 
@@ -117,4 +142,5 @@ class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
     }
 }
 
-fun <T> matrix(builder: Matrix.RowBuilder<T>.() -> Unit) = Matrix.RowBuilder<T>().apply(builder).build()
+fun <T> matrix(builder: Matrix.RowBuilder.Any<T>.() -> Unit): Matrix<T> = Matrix.RowBuilder.Any<T>().apply(builder).build()
+fun <T> squareMatrix(builder: Matrix.RowBuilder.Square<T>.() -> Unit) = Matrix.RowBuilder.Square<T>().apply(builder).build()
