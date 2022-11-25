@@ -2,13 +2,18 @@ package algorithms
 
 import java.util.*
 
-data class RootedTree(val root: Vertex, private val graph: Graph) : Graph by graph
-
-interface VertexTracker<T : MutableCollection<Vertex>> {
-    val empty: T
-    fun remove(collection: T): Vertex
+sealed interface RootedTree : Graph  {
+    companion object {
+        fun create(root: Vertex, graph: Graph) = when (graph) {
+            is Graph.Directed -> Directed(root,graph)
+            is Graph.Undirected -> Undirected(root,graph)
+            else -> error("Impossible")
+        }
+    }
+    val root: Vertex
+    class Directed(override val root: Vertex, private val graph: Graph.Directed): RootedTree, Graph.Directed by graph
+    class Undirected(override val root: Vertex, private val graph: Graph.Undirected): RootedTree, Graph.Undirected by graph
 }
-
 
 fun Graph.bfs(root: Vertex): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
@@ -26,35 +31,14 @@ fun Graph.bfs(root: Vertex): RootedTree {
         currentLayer = nextLayer.map { it.end }
     } while (currentLayer.isNotEmpty())
 
-    return RootedTree(root, bfsTree.build())
+    return RootedTree.create(root, bfsTree.build())
 }
 
-fun Graph.bfsObfuscatedByEvaTardosh(root: Vertex): RootedTree {
-    val T = Graph.Builder(directed = this.isDirected)
-    T.addVertex(root)
-    val discovered = hashSetOf(root)
-
-    var currentL = listOf(root)
-    do {
-        val nextL = mutableListOf<Vertex>()
-        for (u in currentL) {
-            for (v in neighborsOf(u)) {
-                if (v !in discovered) {
-                    T.addEdge(u, v)
-                    nextL.add(v)
-                }
-            }
-        }
-        currentL = nextL
-    } while (currentL.isNotEmpty())
-
-    return RootedTree(root, T.build())
-}
 
 fun Graph.dfs(root: Vertex): RootedTree {
     val dfsTree = Graph.Builder(isDirected)
     dfsRecur(root, dfsTree)
-    return RootedTree(root, dfsTree.build())
+    return RootedTree.create(root, dfsTree.build())
 }
 
 private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder<*>) {

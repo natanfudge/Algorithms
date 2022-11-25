@@ -1,5 +1,8 @@
 package algorithms
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
 fun Graph.Directed.toplogicallySort(): List<Vertex>? {
     val activeIncomingEdges: MutableMap<Vertex,Int> = vertices.associateWith { 0 }.toMutableMap()
     val noIncomingActiveEdges = mutableSetOf<Vertex>()
@@ -22,5 +25,6 @@ fun Graph.Directed.toplogicallySort(): List<Vertex>? {
     return order
 }
 
-//TODO: test with successfull and unsucessful topological sort
 
+
+val Graph.Directed.isTopologicallySortable get() = topologicalSort != null

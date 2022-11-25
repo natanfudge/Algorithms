@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 
 @Composable
@@ -27,15 +29,15 @@ fun App() {
     // (1.0, 1.0, 0.0)
     val f = Color.Yellow named "Yellow"
 
-    val a2 = Color.Red.copy(alpha = 0.5f) named "OffRed"
-    val b2 = Color.Green.copy(alpha = 0.5f) named "OffGreen"
-    val c2 = Color.Blue.copy(alpha = 0.5f) named "OffBlue"
-    val d2 = Color.Black.copy(alpha = 0.5f) named "OffBlack"
-    val e2 = Color.Cyan.copy(alpha = 0.5f) named "OffCyan"
-    val f2 = Color.Yellow.copy(alpha = 0.5f) named "OffYellow"
+    val a2 = Color.Red.copy(alpha = 0.5f) named "ORed"
+    val b2 = Color.Green.copy(alpha = 0.5f) named "OGreen"
+    val c2 = Color.Blue.copy(alpha = 0.5f) named "OBlue"
+    val d2 = Color.Black.copy(alpha = 0.5f) named "OBlack"
+    val e2 = Color.Cyan.copy(alpha = 0.5f) named "OCyan"
+    val f2 = Color.Yellow.copy(alpha = 0.5f) named "OYellow"
 
-    val a3 = Color.Red.copy(alpha = 0.2f) named "OffOffRed"
-    val b3 = Color.Green.copy(alpha = 0.2f) named "OffOffGreen"
+    val a3 = Color.Red.copy(alpha = 0.2f) named "X"
+    val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
 
     val graph = Graph.Builder(directed = true).apply {
         a edgeTo b
@@ -61,44 +63,34 @@ fun App() {
     val bfs = graph.bfs(orderedGraph)
     val dfs = graph.dfs(orderedGraph)
 
-    val v1 = Color.Red named "v1"
-    val v2 = Color.Green named "v2"
-    val v3 = Color.Blue named "v3"
-    val v4 = Color.Black named "v4"
-    val v5 = Color.Yellow named "v5"
-    val v6 = Color.Cyan named "v6"
-    val v7 = Color.Magenta named "v7"
+    val (v1, v2, v3, v4, v5, v6, v7) = vertices("v1", "v2", "v3", "v4", "v5", "v6", "v7")
 
     val topologicalSortTest = buildDirectedGraph {
-        v1 edgeTo v5
-        v1 edgeTo v4
-        v1 edgeTo v7
-        v2 edgeTo v3
-        v2 edgeTo v5
-        v2 edgeTo v6
-        v3 edgeTo v4
-        v3 edgeTo v5
-        v4 edgeTo v5
-        v5 edgeTo v6
-        v5 edgeTo v7
-        v6 edgeTo v7
+        v1.to(v5, v4, v7)
+        v2.to(v3, v5, v6)
+        v3.to(v4, v5)
+        v4.to(v5)
+        v5.to(v6, v7)
+        v6.to(v7)
     }
 
-    println(topologicalSortTest.toplogicallySort())
 
 
     Column {
-        GraphUi(topologicalSortTest)
-//        GraphUi(graph, Modifier.padding(10.dp).weight(1f))
-//        GraphUi(bfs, Modifier.padding(10.dp).weight(1f))
-//        GraphUi(dfs, Modifier.padding(10.dp).weight(1f))
+        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(graph, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
     }
 
 }
 
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        onCloseRequest = ::exitApplication,
+        state = WindowState(width = 1700.dp, height = 900.dp, /*position = WindowPosition(0.dp, 0.dp)*/)
+    ) {
         App()
     }
 }

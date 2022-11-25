@@ -41,6 +41,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
+                implementation("io.strikt:strikt-core:0.34.0")
             }
         }
     }

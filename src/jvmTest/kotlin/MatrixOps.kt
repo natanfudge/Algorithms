@@ -2,7 +2,7 @@ import linearAlg.*
 import org.junit.Assert
 import org.junit.Test
 
-class Tests {
+class MatrixOps {
     @Test
     fun testMultiplication() {
         val matrix = Matrix.IndexBuilder.Any<Int>(2, 3).also {
@@ -36,7 +36,7 @@ class Tests {
 
     @Test
     fun testMinor() {
-        val matrix = matrix {
+        val matrix = squareMatrix {
             row(1,2,3,4,5)
             row(3,4,5,6,7)
             row(1,1,1,1,1)
@@ -70,7 +70,7 @@ class Tests {
     }
     @Test
     fun testDeterminant() = with(RealNumbers){
-        val matrix = matrix {
+        val matrix = squareMatrix {
             row(1,2,3,4,5)
             row(3,4,5,6,7)
             row(1,1,1,1,1)
@@ -84,7 +84,7 @@ class Tests {
 
         Assert.assertEquals(0, res)
 
-        val matrix2 = matrix {
+        val matrix2 = squareMatrix {
             row(4,2,3,4,5)
             row(3,11,5,6,7)
             row(1,1,9,1,1)
@@ -117,7 +117,7 @@ class Tests {
     }
     @Test
     fun adjugate() = with(RealNumbers){
-        println(matrix {
+        println(squareMatrix {
             row(4,2,3,4,5)
             row(3,11,5,6,7)
             row(1,1,9,1,1)

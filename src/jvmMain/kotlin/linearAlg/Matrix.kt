@@ -74,22 +74,18 @@ sealed class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>
     sealed class RowBuilder<T, M: Matrix<T>> {
         protected val rows: MutableList<Series<T>> = mutableListOf()
 
-        protected abstract fun construct(): M
+         abstract fun build(): M
         class Any<T> : RowBuilder<T, Matrix<T>>() {
-            override fun construct(): Matrix<T> = if(rows.size  == rows[0].size) Square(rows)
+            override fun build(): Matrix<T> = if(rows.size  == rows[0].size) Square(rows)
             else NonSquare(rows)
         }
         class Square<T> : RowBuilder<T,Matrix.Square<T>>() {
-            override fun construct(): Matrix.Square<T>  = Square(rows)
+            override fun build(): Matrix.Square<T>  = Square(rows)
         }
 
         fun row(vararg values: T) {
             if (rows.isNotEmpty()) require(values.size == rows[0].size)
             rows.add(Series(values.toList()))
-        }
-
-        fun build(): Matrix<T> {
-            return construct()
         }
     }
 
@@ -143,4 +139,4 @@ sealed class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>
 }
 
 fun <T> matrix(builder: Matrix.RowBuilder.Any<T>.() -> Unit): Matrix<T> = Matrix.RowBuilder.Any<T>().apply(builder).build()
-fun <T> squareMatrix(builder: Matrix.RowBuilder.Square<T>.() -> Unit) = Matrix.RowBuilder.Square<T>().apply(builder).build()
+fun <T> squareMatrix(builder: Matrix.RowBuilder.Square<T>.() -> Unit): Matrix.Square<T> = Matrix.RowBuilder.Square<T>().apply(builder).build()

@@ -4,15 +4,17 @@ import androidx.compose.ui.graphics.Color
 
 val Graph.isDirected get() = this is Graph.Directed
 
+
 sealed interface Graph {
     val vertices: List<Vertex>
     val edges: List<Edge>
 
-    interface Directed : Graph
+    interface Directed : Graph {
+        val topologicalSort: List<Vertex>?
+    }
 
     interface Undirected : Graph
 
-//    val isDirected: Boolean
 
     fun neighborsOf(vertex: Vertex): List<Vertex>
     fun edgesOf(vertex: Vertex): List<Edge>
@@ -62,6 +64,8 @@ sealed interface Graph {
         infix fun VertexTag.edgeTo(other: VertexTag): Boolean {
             return addEdge(this, other)
         }
+
+        fun VertexTag.to(vararg others: VertexTag) = others.forEach { addEdge(this, it) }
 
         fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, directed))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
@@ -118,7 +122,9 @@ sealed class LinkedListGraph(
     class Directed(
         vertices: List<Vertex>,
         edges: List<Edge>
-    ) : Graph.Directed, LinkedListGraph(vertices, edges)
+    ) : Graph.Directed, LinkedListGraph(vertices, edges) {
+        override val topologicalSort: List<Vertex>? by lazy {toplogicallySort()}
+    }
 
     class Undirected(
         vertices: List<Vertex>,
@@ -151,14 +157,13 @@ data class Vertex(val color: Color, val index: Int, val name: String) {
 
     val tag = VertexTag(color, name)
     override fun toString(): String = "($name)"
-    override fun equals(other: Any?): Boolean = other is Vertex && other.tag == tag
-    override fun hashCode(): Int = tag.hashCode()
+    override fun equals(other: Any?): Boolean = other is Vertex && other.name == name
+    override fun hashCode(): Int = name.hashCode()
 }
 
 data class VertexTag(val color: Color, val name: String)
 
 infix fun Color.named(name: String) = VertexTag(this, name)
-//data class VertexTag(val tag)
 
 data class Edge(val start: Vertex, val end: Vertex) {
     sealed interface Builder {

@@ -8,7 +8,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -17,7 +21,19 @@ import kotlin.math.sqrt
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
 //TODO: special ordering for topologically ordered graph
 private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
-    return if (isTree()) treePositions() else regularGraphPositions()
+    return when {
+        isTree() -> treePositions()
+        this is Graph.Directed && isTopologicallySortable -> topologicalSortPositions()
+        else -> regularGraphPositions()
+    }
+}
+
+private fun Graph.Directed.topologicalSortPositions(): Map<Vertex, Offset> {
+    val sorted = topologicalSort!!
+    val n = sorted.size
+    return sorted.mapIndexed { i, vertex ->
+        vertex to Offset((i) / (n - 1f), 0.5f)
+    }.toMap()
 }
 
 private fun Graph.treePositions(): Map<Vertex, Offset> {
@@ -61,31 +77,49 @@ private fun Graph.regularGraphPositions(): Map<Vertex, Offset> {
     }
 }
 
-
+//context(TextMeasurer)
+        @OptIn(ExperimentalTextApi::class)
 @Composable
-fun GraphUi(graph: Graph, modifier: Modifier = Modifier) = Canvas(modifier.fillMaxSize()) {
-    val connectedComponents = graph.getConnectedComponents()
-    val n = connectedComponents.size
-    for ((i, component) in connectedComponents.withIndex()) {
-        val padding = if (i == 0) 0f else 10f
-        val componentWidth = size.width / n
-        drawGraph(
-            component,
-            bounds = Rect(Offset(componentWidth * i + padding, 0f), Size(componentWidth - padding, size.height))
-        )
+fun GraphUi(graph: Graph, modifier: Modifier = Modifier) {
+    val textMeasurer = rememberTextMeasurer()
+    Canvas(modifier.fillMaxSize()) {
+        require(size.height >= VertexRadius){"Not enough vertical space was given to the graph (${size.height})"}
+        val connectedComponents = graph.getConnectedComponents()
+        val n = connectedComponents.size
+        for ((i, component) in connectedComponents.withIndex()) {
+            val padding = if (i == 0) 0f else 10f
+            val componentWidth = size.width / n
+            with(textMeasurer){
+                drawGraph(
+                    component,
+                    bounds = Rect(Offset(componentWidth * i + padding, 0f), Size(componentWidth - padding, size.height))
+                )
+            }
+
+        }
+
     }
-
 }
-
+context(TextMeasurer)
+        @OptIn(ExperimentalTextApi::class)
 fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
+
+//    drawCurvedArrow(Color.Red, Offset(20f, 100f), Offset(300f, 100f))
+
     val positions = graph.chooseVertexPositions()
         .mapValues { (_, pos) -> placeVertex(pos, bounds) }
     positions.forEach { (vertex, position) ->
         drawVertex(vertex, position)
     }
 
-    for (edge in graph.edges) {
-        drawEdge(edge, positions, directed = graph.isDirected)
+    for ((i, edge) in graph.edges.withIndex()) {
+        drawEdge(
+            edge,
+            positions,
+            directed = graph.isDirected,
+            graph is Graph.Directed && graph.isTopologicallySortable && !graph.isTree(),
+            i
+        )
     }
 
 }
@@ -103,7 +137,35 @@ private fun Offset.rotate(radians: Float): Offset {
 fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
     drawLine(color, start, end)
 
-    val endOriginalized = end - start
+    drawArrowHead(color, start, end)
+}
+
+fun DrawScope.drawCurvedArrowOnCircles(color: Color, start: Offset, end: Offset, up: Boolean, circleRadius: Float) {
+    val offset = if (up) -circleRadius else circleRadius
+    val circleEdgeStart = start + Offset(0f, offset)
+    val circleEdgeEnd = end + Offset(0f, offset)
+    drawCurvedArrow(color, circleEdgeStart, circleEdgeEnd, up)
+}
+
+/**
+ * @param up if true will go above the start, otherwise will go below start
+ */
+fun DrawScope.drawCurvedArrow(color: Color, start: Offset, end: Offset, up: Boolean) {
+    val controlPointX = (start.x + end.x) / 2
+    val controlOffset = if (up) -200 else 200
+    val controlPointY =  (start.y + controlOffset).coerceIn(0f, size.height)
+
+    drawPath(Path().apply {
+        moveTo(start.x, start.y)
+
+        this.quadraticBezierTo(controlPointX, controlPointY, end.x, end.y)
+    }, color, style = Stroke(width = 1f))
+
+    drawArrowHead(color, origin = Offset(controlPointX, controlPointY), end)
+}
+
+fun DrawScope.drawArrowHead(color: Color, origin: Offset, end: Offset) {
+    val endOriginalized = end - origin
     val normalized = endOriginalized.normalized()
     val length = 30f
     val line = normalized * length
@@ -118,19 +180,34 @@ fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
 const val VertexRadius = 20f
 
 
-fun DrawScope.drawEdge(edge: Edge, vertexPositions: Map<Vertex, Offset>, directed: Boolean) {
+fun DrawScope.drawEdge(
+    edge: Edge,
+    vertexPositions: Map<Vertex, Offset>,
+    directed: Boolean,
+    topologicallySortable: Boolean,
+    index: Int
+) {
     val start = vertexPositions[edge.start]!!
-    val end = vertexPositions[edge.end]!!
+    val end = vertexPositions[edge.end] ?: error("Vertex ${edge.end} was not positioned, positioned: ${vertexPositions.keys}")
 
     val startToVertex = shortenedLine(end, start, shortenBy = VertexRadius)
     val endToVertex = shortenedLine(start, end, shortenBy = VertexRadius)
 
-    if (directed) {
-        drawArrow(Color.Black, startToVertex, endToVertex)
-    } else {
-        drawLine(Color.Black, start = startToVertex, end = endToVertex)
+    when {
+        topologicallySortable -> drawCurvedArrowOnCircles(
+            Color.Black,
+            start,
+            end,
+            up = index % 2 == 0,
+            circleRadius = VertexRadius
+        )
+
+        directed -> drawArrow(Color.Black, startToVertex, endToVertex)
+        else -> drawLine(Color.Black, start = startToVertex, end = endToVertex)
     }
 }
+
+
 
 private fun shortenedLine(start: Offset, end: Offset, shortenBy: Float): Offset {
     val originalized = end - start
@@ -146,13 +223,20 @@ private fun placeVertex(relativePosition: Offset, bounds: Rect): Offset {
     val initialPositionX = bounds.left + relativePosition.x * width
     val initialPositionY = bounds.top + relativePosition.y * height
 
+
     // Make it so vertex doesn't clip out of the bounding box
     val positionX = initialPositionX.coerceIn(bounds.left + VertexRadius, bounds.left + width - VertexRadius)
     val positionY = initialPositionY.coerceIn(bounds.top + VertexRadius, bounds.top + height - VertexRadius)
 
     return Offset(positionX, positionY)
 }
-
+context(TextContext)
+@OptIn(ExperimentalTextApi::class)
 private fun DrawScope.drawVertex(vertex: Vertex, position: Offset) {
-    drawCircle(vertex.color, center = position, radius = VertexRadius)
+    drawCircle(vertex.color, center = position, radius = VertexRadius, style = Stroke(width = 1f))
+    val width = vertex.name.length * 7
+    drawText(this@TextContext, topLeft = position - Offset(width / 2f, 8f), text = vertex.name)
 }
+
+@OptIn(ExperimentalTextApi::class)
+typealias TextContext = TextMeasurer
