@@ -6,6 +6,12 @@ interface LinearSpace<T, V> {
     operator fun V.plus(other: V)
     operator fun T.times(vector: V)
 
+    operator fun T.div(other: V){
+
+    }
+
+//    operator fun
+
     class SquareMatrix<T>(val order: Int): LinearSpace<T, Matrix.Square<T>> {
         //TODO: in implementation validate order in plus and times
         override val field: Field<T>
@@ -21,3 +27,9 @@ interface LinearSpace<T, V> {
     }
 }
 
+
+
+context(LinearSpace<T,V>)
+fun < T,V>test(){
+    val x:
+}

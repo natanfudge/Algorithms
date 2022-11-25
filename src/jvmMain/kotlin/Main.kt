@@ -89,7 +89,7 @@ fun App() {
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        state = WindowState(width = 1700.dp, height = 900.dp, /*position = WindowPosition(0.dp, 0.dp)*/)
+        state = WindowState(width = 1700.dp, height = 900.dp)
     ) {
         App()
     }

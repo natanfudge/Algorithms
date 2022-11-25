@@ -1,21 +1,27 @@
 package linearAlg
 
-import linearAlg.RealNumbers.plus
-
 interface Field<T> {
     operator fun T.plus(other: T): T
-    operator fun T.unaryMinus() : T
+    operator fun T.unaryMinus(): T
     operator fun T.times(other: T): T
 
-     fun T.inverse(): T
+    fun T.inverse(): T
+
+    val Zero: T
+    val Identity: T
+}
+context(Field<T>)
+operator fun <T> T.div(matrix: Matrix<T>): Matrix<T> {
+    return matrix.map { this / it }
 }
 
 context (Field<T>)
-operator fun <T> T.minus(other: T): T {
+        operator fun <T> T.minus(other: T): T {
     return this + -other
 }
+
 context (Field<T>)
-operator fun <T> T.div(other: T): T {
+        operator fun <T> T.div(other: T): T {
     return this * other.inverse()
 }
 
@@ -53,6 +59,9 @@ object RealNumbers : Field<Number> {
         return 1.0 / this.toDouble()
     }
 
+    override val Zero: Number = 0
+    override val Identity: Number = 1
+
 }
 
 context (Field<L>)
@@ -64,12 +73,14 @@ fun <T, L> List<T>.sumOf(selector: (T) -> L): L {
     }
     return sum
 }
+
 context (Field<T>)
 fun <T> List<T>.sum(): T {
     return sumOf { it }
 }
 
 context (Field<T>)
-fun <T> T.negativeOnOddIndex(index: Int) = if(index % 2 == 0) this else -this
+fun <T> T.negativeOnOddIndex(index: Int) = if (index % 2 == 0) this else -this
+
 context (Field<T>)
-fun <T> T.negativeOnEvenIndex(index: Int) = if(index % 2 == 0) -this else this
+fun <T> T.negativeOnEvenIndex(index: Int) = if (index % 2 == 0) -this else this
