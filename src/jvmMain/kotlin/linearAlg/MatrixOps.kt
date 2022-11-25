@@ -88,5 +88,6 @@ context (Field<T>)
 fun <T> Matrix.Square<T>.inverse(): Matrix.Square<T>? {
     val det = determinant()
     if (det == Zero) return null
-
+    val inverse = (Identity / det)
+    return inverse * adjugate()
 }

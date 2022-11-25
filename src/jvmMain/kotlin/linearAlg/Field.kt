@@ -10,10 +10,7 @@ interface Field<T> {
     val Zero: T
     val Identity: T
 }
-context(Field<T>)
-operator fun <T> T.div(matrix: Matrix<T>): Matrix<T> {
-    return matrix.map { this / it }
-}
+
 
 context (Field<T>)
         operator fun <T> T.minus(other: T): T {
@@ -40,13 +37,15 @@ object RealNumbers : Field<Number> {
     override fun Number.times(other: Number): Number {
         return when (this) {
             is Int -> {
-                require(other is Int)
-                this * other
+                if (other is Int) this * other
+                else this * other.toDouble()
             }
 
-            else -> this.toDouble() + other.toDouble()
+            else -> (this.toDouble() * other.toDouble())
         }
     }
+
+//    private fun Double.
 
     override fun Number.unaryMinus(): Number {
         return when (this) {
