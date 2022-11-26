@@ -1,4 +1,7 @@
-package linearAlg
+package linearAlg.linearspace
+
+import linearAlg.Field
+import linearAlg.sumOf
 
 context(Field<T>)
 fun <T> Series<T>.dotProduct(other: Series<T>): T {

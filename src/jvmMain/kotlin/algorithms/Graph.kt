@@ -66,7 +66,7 @@ sealed interface Graph {
         fun VertexTag.to(vararg others: VertexTag) = others.forEach { addEdge(this, it) }
 
          //TODO: fix this to support generic Edge.Builder (need to think if that's even possible, maybe we do need to declare if it's directed from the start)
-        fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, directed))
+        fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, /*directed*/ TODO()))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
         fun addEdge(edge: Edge.Builder): Boolean {
@@ -102,16 +102,16 @@ sealed interface Graph {
             )
         }
 
-         fun buildDirected()
+//         fun buildDirected()
     }
 }
 
 
-fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
-    Graph.Builder(directed).apply(builder).build()
+fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph = TODO()
+    /*Graph.Builder().apply(builder).build()*/
 
-fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
-    buildGraph(true,builder)
+fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): DirectedGraph = TODO()
+//    buildGraph(true,builder)
 
 fun buildUndirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
     buildGraph(false,builder)

@@ -1,5 +1,9 @@
 package linearAlg
 
+import linearAlg.linearspace.matrix
+import linearAlg.linearspace.multiply
+import linearAlg.linearspace.squareMatrix
+
 fun main() {
     val matrix = matrix {
         row(1,2,5)

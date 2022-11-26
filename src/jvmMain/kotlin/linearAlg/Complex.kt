@@ -1,10 +1,23 @@
 package linearAlg
 
+import linearAlg.linearspace.roundTo5DecimalSpaces
 import kotlin.math.sqrt
 
+//data class Imaginary(val value: Double)
+
+operator fun Double.times(complex: Complex) = Complex(this * complex.real, this * complex.imaginary)
+operator fun Int.times(complex: Complex) = this.toDouble() * complex
+operator fun Double.plus(complex: Complex) = Complex(this + complex.real, complex.imaginary)
+operator fun Int.plus(complex: Complex) = this.toDouble() + complex
+
 data class Complex(val real: Double, val imaginary: Double){
+    constructor( real: Int, imaginary: Int) : this(real.toDouble(),imaginary.toDouble())
+    constructor( real: Int, imaginary: Double) : this(real.toDouble(),imaginary)
+    constructor( real: Double, imaginary: Int) : this(real,imaginary.toDouble())
     companion object {
         val Zero = Complex(0.0,0.0)
+        val I = Complex(0.0, 1.0)
+        val One = Complex(1.0,0.0)
     }
     operator fun plus(other: Complex): Complex {
         return Complex(real + other.real, imaginary + other.imaginary)
@@ -16,14 +29,20 @@ data class Complex(val real: Double, val imaginary: Double){
 
     operator fun times(other: Complex): Complex {
         return Complex(
-            this.real * other.real - this.imaginary * other.imaginary,
-            this.real * other.imaginary + this.imaginary * other.real
+            (this.real * other.real - this.imaginary * other.imaginary).roundTo5DecimalSpaces(),
+            (this.real * other.imaginary + this.imaginary * other.real).roundTo5DecimalSpaces()
         )
     }
 
     operator fun div(number: Double) = Complex(real / number, imaginary / number)
 
     operator fun unaryMinus() = Complex(-real, -imaginary)
+
+    val conjugate get() = Complex(real, -imaginary)
+
+    val abs get() = sqrt(real.squared() + imaginary.squared())
+
+    val inverse get() = conjugate / (abs.squared())
 
     override fun toString(): String {
         val imaginaryStr = imaginary.trimDecimalPoint()
@@ -58,9 +77,7 @@ val Int.justReal get() = toDouble().justReal
 val List<Double>.justReal get() = map { it.justReal }
 fun listOfComplex(vararg values: Double) = values.toList().map { it.justReal }
 
-val complexNumberI = Complex(0.0, 1.0)
 
-//fun getRootsOfUnity(amount: Int): List<Pair<linearAlg.Complex,linearAlg.Complex>> = rootsOfUnity.take(amount / 2)
 fun getRootOfUnity(index: Int, order: Int, reversed: Boolean): Complex {
     val list = when (order) {
         2 -> secondOrderRootsOfUnity
@@ -77,15 +94,15 @@ fun getRootOfUnity(index: Int, order: Int, reversed: Boolean): Complex {
 }
 
 private val secondOrderRootsOfUnity = listOfComplex(1.0, -1.0)
-private val fourthOrderRootsOfUnity = listOf(1.justReal, complexNumberI, (-1).justReal, -complexNumberI)
+private val fourthOrderRootsOfUnity = listOf(1.justReal, Complex.I, (-1).justReal, -Complex.I)
 private val eightOrderRootsOfUnity = listOf(
     1.justReal,
     (1 plusI 1) / sqrt(2.0),
-    complexNumberI,
+    Complex.I,
     -(1 minusI 1) / sqrt(2.0),
     (-1).justReal,
     -(1 plusI 1) / sqrt(2.0),
-    -complexNumberI,
+    -Complex.I,
     (1 minusI 1) / sqrt(2.0)
 )
 

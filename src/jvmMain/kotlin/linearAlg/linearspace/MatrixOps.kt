@@ -1,4 +1,6 @@
-package linearAlg
+package linearAlg.linearspace
+
+import linearAlg.*
 
 context (Field<T>)
 fun <T> Matrix<T>.forEach(iterator: (item: T) -> Unit) {
@@ -25,7 +27,7 @@ fun <T, M : Matrix<T>> M.mapIndexed(map: (row: Int, column: Int, item: T) -> T):
                 builder[row, column] = map(row, column, item)
             }
         }.build() as M
-fun <T, M : Matrix<T>> M.map(map: ( item: T) -> T): M = mapIndexed {_,_, item -> map(item)}
+fun <T, M : Matrix<T>> M.map(map: (item: T) -> T): M = mapIndexed { _, _, item -> map(item)}
 
 
 context (Field<T>)

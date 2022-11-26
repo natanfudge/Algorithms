@@ -1,6 +1,7 @@
-package linearAlg
+package linearAlg.linearspace
 
-import linearAlg.Matrix.Square
+import linearAlg.Field
+import linearAlg.linearspace.Matrix.Square
 import java.util.*
 
 typealias TwoDimArray<T> = List<List<T>>

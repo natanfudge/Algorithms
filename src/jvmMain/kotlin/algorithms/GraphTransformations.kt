@@ -16,16 +16,17 @@ fun Graph.undirect(): Pair<Graph, Map<Vertex, List<Vertex>>> {
         neighbors[vertex] = neighborsOf(vertex)
     }
 
-    return graph.build() to neighbors
+    return TODO() /*graph.build() to neighbors*/
 }
 
-fun Graph.direct(neighborMap: Map<Vertex,List<Vertex>>): Graph.Directed {
-    val graph = Graph.Builder.Directed()
-    for(vertex in vertices){
-        graph.addVertex(vertex)
-        for(neighbor in neighborMap.getValue(vertex)){
-            graph.addEdge(start = vertex, end = neighbor)
-        }
-    }
-    return graph.build()
+fun Graph.direct(neighborMap: Map<Vertex,List<Vertex>>): DirectedGraph {
+    TODO()
+//    val graph = Graph.Builder.Directed()
+//    for(vertex in vertices){
+//        graph.addVertex(vertex)
+//        for(neighbor in neighborMap.getValue(vertex)){
+//            graph.addEdge(start = vertex, end = neighbor)
+//        }
+//    }
+//    return graph.build()
 }

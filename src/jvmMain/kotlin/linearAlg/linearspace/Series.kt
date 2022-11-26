@@ -1,4 +1,4 @@
-package linearAlg
+package linearAlg.linearspace
 
 import kotlin.math.roundToInt
 
@@ -24,6 +24,6 @@ private fun <T> T.equalsEnough(other: T): Boolean {
     } else this == other
 }
 
-private fun Double.roundTo5DecimalSpaces(): Double {
+ fun Double.roundTo5DecimalSpaces(): Double {
     return (this * 100000).roundToInt() / 100000.0
 }

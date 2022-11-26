@@ -1,4 +1,7 @@
-package linearAlg
+package linearAlg.linearspace
+
+import linearAlg.Field
+import linearAlg.div
 
 interface LinearSpace<T, V> {
     val field: Field<T>
@@ -25,12 +28,12 @@ interface LinearSpace<T, V> {
 }
 
 
-context(LinearSpace<T,V>)
+context(LinearSpace<T, V>)
 operator fun<T,V> V.div(other: T): V = with(field) {
     return this@div * (field.Identity / other)
 }
 
-context(LinearSpace<T,V>)
+context(LinearSpace<T, V>)
 operator fun<T,V> V.times(other: T): V{
     return other * this
 }

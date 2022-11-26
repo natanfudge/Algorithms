@@ -1,4 +1,5 @@
 import linearAlg.*
+import linearAlg.linearspace.*
 import org.junit.Assert
 import org.junit.Test
 import strikt.api.expectThat

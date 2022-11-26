@@ -39,7 +39,7 @@ fun App() {
     val a3 = Color.Red.copy(alpha = 0.2f) named "X"
     val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
 
-    val graph = Graph.Builder(directed = true).apply {
+    val graph: Graph = TODO() /*Graph.Builder(directed = true).apply {
         a edgeTo b
         b edgeTo c
         c edgeTo d
@@ -57,7 +57,7 @@ fun App() {
         f2 edgeTo e2
 
         a3 edgeTo b3
-    }.build()
+    }.build()*/
 
     val orderedGraph = graph.vertices.first { it.tag == c }
     val bfs = graph.bfs(orderedGraph)

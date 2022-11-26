@@ -22,12 +22,12 @@ import kotlin.math.sqrt
 private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
     return when {
         isTree() -> treePositions()
-        this is Graph.Directed && isTopologicallySortable -> topologicalSortPositions()
+        this.isDirected && (this as DirectedGraph).isTopologicallySortable -> topologicalSortPositions()
         else -> regularGraphPositions()
     }
 }
 
-private fun Graph.Directed.topologicalSortPositions(): Map<Vertex, Offset> {
+private fun DirectedGraph.topologicalSortPositions(): Map<Vertex, Offset> {
     val sorted = topologicalSort!!
     val n = sorted.size
     return sorted.mapIndexed { i, vertex ->
@@ -117,7 +117,7 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
             edge,
             positions,
             directed = graph.isDirected,
-            graph is Graph.Directed && graph.isTopologicallySortable && !graph.isTree(),
+            graph.isDirected && (graph as DirectedGraph).isTopologicallySortable && !graph.isTree(),
             i
         )
     }
