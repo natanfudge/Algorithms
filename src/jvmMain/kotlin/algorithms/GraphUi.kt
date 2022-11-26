@@ -19,7 +19,6 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
-//TODO: special ordering for topologically ordered graph
 private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
     return when {
         isTree() -> treePositions()
@@ -56,6 +55,7 @@ private fun Graph.treePositions(): Map<Vertex, Offset> {
 
     return positions
 }
+//TODO: weighted graph positioning
 
 private fun Graph.regularGraphPositions(): Map<Vertex, Offset> {
     val positionList = when (vertices.size) {

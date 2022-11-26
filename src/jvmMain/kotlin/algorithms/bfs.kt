@@ -2,18 +2,7 @@ package algorithms
 
 import java.util.*
 
-sealed interface RootedTree : Graph  {
-    companion object {
-        fun create(root: Vertex, graph: Graph) = when (graph) {
-            is Graph.Directed -> Directed(root,graph)
-            is Graph.Undirected -> Undirected(root,graph)
-            else -> error("Impossible")
-        }
-    }
-    val root: Vertex
-    class Directed(override val root: Vertex, private val graph: Graph.Directed): RootedTree, Graph.Directed by graph
-    class Undirected(override val root: Vertex, private val graph: Graph.Undirected): RootedTree, Graph.Undirected by graph
-}
+
 
 fun Graph.bfs(root: Vertex): RootedTree {
     val bfsTree = Graph.Builder(directed = this.isDirected)
@@ -31,17 +20,17 @@ fun Graph.bfs(root: Vertex): RootedTree {
         currentLayer = nextLayer.map { it.end }
     } while (currentLayer.isNotEmpty())
 
-    return RootedTree.create(root, bfsTree.build())
+    return bfsTree.build().withAttribute(GraphAttribute.Root(root))
 }
 
 
 fun Graph.dfs(root: Vertex): RootedTree {
     val dfsTree = Graph.Builder(isDirected)
     dfsRecur(root, dfsTree)
-    return RootedTree.create(root, dfsTree.build())
+    return dfsTree.build().withAttribute(GraphAttribute.Root(root))
 }
 
-private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder<*>) {
+private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder) {
     dfsTree.addVertex(root)
     for (edge in edgesOf(root)) {
         if (edge.end !in dfsTree) {
@@ -85,10 +74,10 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
 }
 
 fun Graph.isTree(): Boolean {
-    if (this is RootedTree) return true
+    if (isRootedTree) return true
     if (vertices.isEmpty()) return false
     val bfsTree = bfs(vertices[0])
     return bfsTree.vertices.size == vertices.size
 }
 
-fun Graph.root() = if (this is RootedTree) root else vertices[0]
+fun Graph.root() = if (isRootedTree) getGenericAttribute<GraphAttribute.Root>()!!.root else vertices[0]

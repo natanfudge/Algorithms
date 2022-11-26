@@ -2,45 +2,43 @@ package algorithms
 
 import androidx.compose.ui.graphics.Color
 
-val Graph.isDirected get() = this is Graph.Directed
-
 
 sealed interface Graph {
     val vertices: List<Vertex>
     val edges: List<Edge>
 
-    interface Directed : Graph {
-        val topologicalSort: List<Vertex>?
-    }
-
-    interface Undirected : Graph
+//    interface Directed : Graph {
+//        val topologicalSort: List<Vertex>?
+//    }
+//
+//    interface Undirected : Graph
 
 
     fun neighborsOf(vertex: Vertex): List<Vertex>
     fun edgesOf(vertex: Vertex): List<Edge>
 
-    companion object {
-        fun Builder(directed: Boolean) = if (directed) Builder.Directed() else Builder.Undirected()
-    }
+//    companion object {
+//        fun Builder(directed: Boolean) = if (directed) Builder.Directed() else Builder.Undirected()
+//    }
 
-    sealed class Builder<T : Graph>(private val directed: Boolean) {
+     class Builder {
 
-        protected abstract fun constructLinkedListGraph(
-            vertices: List<Vertex>,
-            edges: List<Edge>
-        ): T
-
-        class Directed : Builder<Graph.Directed>(directed = true) {
-            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Directed {
-                return LinkedListGraph.Directed(vertices, edges)
-            }
-        }
-
-        class Undirected : Builder<Graph.Undirected>(directed = false) {
-            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Undirected {
-                return LinkedListGraph.Undirected(vertices, edges)
-            }
-        }
+//        protected abstract fun constructLinkedListGraph(
+//            vertices: List<Vertex>,
+//            edges: List<Edge>
+//        ): T
+//
+//        class Directed : Builder<Graph.Directed>(directed = true) {
+//            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Directed {
+//                return LinkedListGraph.Directed(vertices, edges)
+//            }
+//        }
+//
+//        class Undirected : Builder<Graph.Undirected>(directed = false) {
+//            override fun constructLinkedListGraph(vertices: List<Vertex>, edges: List<Edge>): Graph.Undirected {
+//                return LinkedListGraph.Undirected(vertices, edges)
+//            }
+//        }
 
         private val vertices = mutableSetOf<VertexTag>()
         private val edges = mutableSetOf<Edge.Builder>()
@@ -67,6 +65,7 @@ sealed interface Graph {
 
         fun VertexTag.to(vararg others: VertexTag) = others.forEach { addEdge(this, it) }
 
+         //TODO: fix this to support generic Edge.Builder (need to think if that's even possible, maybe we do need to declare if it's directed from the start)
         fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder.create(start, end, directed))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
@@ -78,7 +77,7 @@ sealed interface Graph {
         }
 
         fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
-        fun build(): T {
+        private fun build(): Graph {
             val verticesOrdered = vertices.sortedBy { it.color.value }
             val vertexToIndex = buildMap {
                 verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
@@ -97,39 +96,41 @@ sealed interface Graph {
                 return Edge(start = start.build(), end = end.build())
             }
 
-            return constructLinkedListGraph(
+            return LinkedListGraph(
                 verticesOrdered.map { it.build() },
                 edges.map { it.build() },
             )
         }
+
+         fun buildDirected()
     }
 }
 
 
-fun buildGraph(directed: Boolean, builder: Graph.Builder<*>.() -> Unit): Graph =
-    if (directed) buildDirectedGraph(builder) else buildUndirectedGraph(builder)
+fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
+    Graph.Builder(directed).apply(builder).build()
 
-fun buildDirectedGraph(builder: Graph.Builder.Directed.() -> Unit): Graph.Directed =
-    Graph.Builder.Directed().apply(builder).build()
+fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
+    buildGraph(true,builder)
 
-fun buildUndirectedGraph(builder: Graph.Builder.Undirected.() -> Unit): Graph.Undirected =
-    Graph.Builder.Undirected().apply(builder).build()
+fun buildUndirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
+    buildGraph(false,builder)
 
-sealed class LinkedListGraph(
+ class LinkedListGraph(
     override val vertices: List<Vertex>,
     override val edges: List<Edge>,
 ) : Graph {
-    class Directed(
-        vertices: List<Vertex>,
-        edges: List<Edge>
-    ) : Graph.Directed, LinkedListGraph(vertices, edges) {
-        override val topologicalSort: List<Vertex>? by lazy {toplogicallySort()}
-    }
+//    class Directed(
+//        vertices: List<Vertex>,
+//        edges: List<Edge>
+//    ) : Graph.Directed, LinkedListGraph(vertices, edges) {
+//        override val topologicalSort: List<Vertex>? by lazy {toplogicallySort()}
+//    }
 
-    class Undirected(
-        vertices: List<Vertex>,
-        edges: List<Edge>
-    ) : Graph.Undirected, LinkedListGraph(vertices, edges)
+//    class Undirected(
+//        vertices: List<Vertex>,
+//        edges: List<Edge>
+//    ) : Graph.Undirected, LinkedListGraph(vertices, edges)
 
     private val neighbors: Map<Vertex, List<Edge>> = run {
         val map = vertices.associateWith { mutableListOf<Edge>() }
