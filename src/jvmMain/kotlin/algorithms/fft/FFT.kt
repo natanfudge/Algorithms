@@ -18,14 +18,22 @@ fun main() {
 //    println(algorithms.fft.fft(vectorOf(1, 2, 3, 4)))
 }
 
+
+
 fun Vector.convolve(other: Vector): Vector {
-    val pointsRequired = this.size + other.size
+    val pointsRequired = nextPowerOf2(this.size + other.size)
     val thisAsPoints = fft(this.padToSize(pointsRequired))
     val otherAsPoints = fft(other.padToSize(pointsRequired))
 
     val multiplied = thisAsPoints.dotProduct(otherAsPoints)
 
     return ifft(multiplied)
+}
+
+private fun nextPowerOf2(num: Int): Int {
+    var power = 1
+    while (power < num) power *= 2
+    return power
 }
 
 fun fft(vector: Vector): Vector {
@@ -75,8 +83,9 @@ private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean): Vector {
             "Calculate f($root) = $evenPartValue + $root * ($oddPartValue) = $rootOfUnityPositiveValue",
             indent
         )
+
         printlnIndent(
-            "Calculate f(-$root) = $evenPartValue - $root * ($oddPartValue) = $rootOfUnityNegativeValue",
+            "Calculate f(-($root)) = $evenPartValue - ($root) * ($oddPartValue) = $rootOfUnityNegativeValue",
             indent
         )
     }

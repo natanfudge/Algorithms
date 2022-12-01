@@ -8,11 +8,104 @@ import strikt.assertions.isEqualTo
 class PolynomialTest {
     @Test
     fun testToString() {
-        val p1 = Polynomial.of(1,-4,2,3,9)
-        expectThat(p1.toString()).isEqualTo("1 - 4x + 2x² + 3x³ + 9x⁴")
+        with(RealNumbers) {
+            val p1 = Polynomial.of(1, -4, 2, 3, 9)
+            expectThat(p1.toString()).isEqualTo("1 - 4x + 2x² + 3x³ + 9x⁴")
+        }
 
-        val p2 = Polynomial.of(3, 2 * I, -3 * I, 4.justReal, (-5).justReal, 1 + I, 2 - I, -3 + 2 * I, -4 - 4 * I)
-        expectThat(p2.toString()).isEqualTo("3 + 2ix - 3ix² + 4x³ - 5x⁴ + (1 + i)x⁵ + (2 - i)x⁶ - (3 - 2i)x⁷ - (4 + 4i)x⁸")
+        with(ComplexNumbers) {
+            val p2 = Polynomial.of(
+                3.justReal,
+                2 * I,
+                -3 * I,
+                4.justReal,
+                (-5).justReal,
+                1 + I,
+                2 - I,
+                -3 + 2 * I,
+                -4 - 4 * I
+            )
+            expectThat(p2.toString()).isEqualTo("3 + 2ix - 3ix² + 4x³ - 5x⁴ + (1 + i)x⁵ + (2 - i)x⁶ - (3 - 2i)x⁷ - (4 + 4i)x⁸")
+        }
+    }
+
+
+    @Test
+    fun testDegree(): Unit = with(RealNumbers) {
+        val p = Polynomial.of(1, 2, 0)
+        expectThat(p.degree).isEqualTo(1)
+    }
+
+    @Test
+    fun testSum(): Unit = with(ComplexNumbers) {
+        val p1 = Polynomial.ofComplex(1, -4, 2, 3, 9)
+        val p2 = Polynomial.of(
+            3.justReal,
+            2 * I,
+            -3 * I,
+            4.justReal,
+            (-5).justReal,
+            1 + I,
+            2 - I,
+            -3 + 2 * I,
+            -4 - 4 * I
+        )
+
+        expectThat(p1 + p2).isEqualTo(
+            Polynomial.of(
+                4.justReal, -4 + 2 * I, 2 - 3 * I, 7.justReal, 4.justReal, 1 + I,
+                2 - I,
+                -3 + 2 * I,
+                -4 - 4 * I
+            )
+        )
+    }
+    @Test
+    fun testMult(): Unit = with(ComplexNumbers) {
+        val p1 = Polynomial.ofComplex(1, -4, 2)
+        val p2 = Polynomial.of(
+            1 + I,
+            2 - I,
+            -3 + 2 * I,
+            -4 - 4 * I
+        )
+
+        println(p1 * p2)
+
+        expectThat(p1 * p2).isEqualTo(
+            Polynomial.of(
+                1 + I,
+                - 2 - 5 * I,
+                -9 + 8 * I,
+                12 - 14 * I,
+                10 + 20 * I,
+                - 8 - 8 * I,
+            )
+        )
+    }
+    @Test
+    fun testFFTMult(): Unit = with(ComplexNumbers) {
+        //TODO: seems like it's flipped, see why.
+        val p1 = Polynomial.ofComplex(1, -4, 2)
+        val p2 = Polynomial.of(
+            1 + I,
+            2 - I,
+            -3 + 2 * I,
+            -4 - 4 * I
+        )
+
+//        println(p1 * p2)
+
+        expectThat(p1.fftMultiply(p2) ).isEqualTo(
+            Polynomial.of(
+                1 + I,
+                - 2 - 5 * I,
+                -9 + 8 * I,
+                12 - 14 * I,
+                10 + 20 * I,
+                - 8 - 8 * I,
+            )
+        )
     }
 }
 

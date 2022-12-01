@@ -45,7 +45,6 @@ object RealNumbers : Field<Number> {
         }
     }
 
-//    private fun Double.
 
     override fun Number.unaryMinus(): Number {
         return when (this) {
@@ -60,6 +59,19 @@ object RealNumbers : Field<Number> {
 
     override val Zero: Number = 0
     override val Identity: Number = 1
+}
+
+object ComplexNumbers : Field<Complex> {
+    override fun Complex.plus(other: Complex): Complex  = this + other
+
+    override fun Complex.unaryMinus(): Complex  = -this
+
+    override fun Complex.times(other: Complex): Complex  = this * other
+
+    override fun Complex.inverse(): Complex  = inverse
+
+    override val Zero: Complex = Complex.Zero
+    override val Identity: Complex = Complex.One
 
 }
 
