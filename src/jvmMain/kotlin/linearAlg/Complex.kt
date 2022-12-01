@@ -9,6 +9,8 @@ operator fun Double.times(complex: Complex) = Complex(this * complex.real, this 
 operator fun Int.times(complex: Complex) = this.toDouble() * complex
 operator fun Double.plus(complex: Complex) = Complex(this + complex.real, complex.imaginary)
 operator fun Int.plus(complex: Complex) = this.toDouble() + complex
+operator fun Double.minus(complex: Complex) = Complex(this - complex.real, -complex.imaginary)
+operator fun Int.minus(complex: Complex) = this.toDouble() - complex
 
 data class Complex(val real: Double, val imaginary: Double){
     constructor( real: Int, imaginary: Int) : this(real.toDouble(),imaginary.toDouble())
