@@ -28,12 +28,12 @@ fun App() {
     // (1.0, 1.0, 0.0)
     val f = Color.Yellow named "Yellow"
 
-    val a2 = Color.Red.copy(alpha = 0.5f) named "ORed"
-    val b2 = Color.Green.copy(alpha = 0.5f) named "OGreen"
-    val c2 = Color.Blue.copy(alpha = 0.5f) named "OBlue"
-    val d2 = Color.Black.copy(alpha = 0.5f) named "OBlack"
-    val e2 = Color.Cyan.copy(alpha = 0.5f) named "OCyan"
-    val f2 = Color.Yellow.copy(alpha = 0.5f) named "OYellow"
+    val a2 = Color.Red.copy(alpha = 0.5f) named "a2"
+    val b2 = Color.Green.copy(alpha = 0.5f) named "b2"
+    val c2 = Color.Blue.copy(alpha = 0.5f) named "c3"
+    val d2 = Color.Black.copy(alpha = 0.5f) named "d2"
+    val e2 = Color.Cyan.copy(alpha = 0.5f) named "e2"
+    val f2 = Color.Yellow.copy(alpha = 0.5f) named "f2"
 
     val a3 = Color.Red.copy(alpha = 0.2f) named "X"
     val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
@@ -50,10 +50,10 @@ fun App() {
 //        b edgeTo f
 
         a2 edgeTo b2
-        b2 edgeTo c2
-        c2 edgeTo a2
+//        b2 edgeTo c2
+//        c2 edgeTo a2
         d2 edgeTo a2
-        e2 edgeTo c2
+//        e2 edgeTo c2
         f2 edgeTo e2
 
 //        a3 edgeTo b3
@@ -77,10 +77,10 @@ fun App() {
 
 
     Column {
-        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
         GraphUi(graph, Modifier.padding(horizontal = 10.dp).weight(1f))
-        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
-        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
     }
 
 }
