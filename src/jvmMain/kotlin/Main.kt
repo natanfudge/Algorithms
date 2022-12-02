@@ -1,5 +1,6 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 import algorithms.*
+import algorithms.graphui.GraphUi
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -38,49 +39,39 @@ fun App() {
     val a3 = Color.Red.copy(alpha = 0.2f) named "X"
     val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
 
-    //TODO: errror
-    val graph: Graph =  buildDirectedGraph {
-//        a edgeTo b
-//        b edgeTo c
-//        c edgeTo d
-//        d edgeTo e
-//        e edgeTo f
-//        b edgeTo a
-//        c edgeTo b
-//        b edgeTo f
-
-        a2 edgeTo b2
+    val graph: Graph = buildDirectedGraph {
+        a.to(b)
+        b.to(a, c, f)
+        c.to(b, d)
+        d.to(e)
+        e.to(f)
+//
+//        a2 edgeTo b2
 //        b2 edgeTo c2
 //        c2 edgeTo a2
-        d2 edgeTo a2
+//        d2 edgeTo a2
 //        e2 edgeTo c2
-        f2 edgeTo e2
-
+//        f2 edgeTo e2
+//
 //        a3 edgeTo b3
     }
 
-    val rootedGraph = graph.rootedAt(a2)
+    val weights = graph.edges.associateWith { 1 }
+
+    val weightedGraph = graph.withWeights(weights)
+
+    val rootedGraph = graph.rootedAt(c)
     val bfs = rootedGraph.bfs()
     val dfs = rootedGraph.dfs()
 
-    val (v1, v2, v3, v4, v5, v6, v7) = vertices("v1", "v2", "v3", "v4", "v5", "v6", "v7")
-
-    val topologicalSortTest = buildDirectedGraph {
-        v1.to(v5, v4, v7)
-        v2.to(v3, v5, v6)
-        v3.to(v4, v5)
-        v4.to(v5)
-        v5.to(v6, v7)
-        v6.to(v7)
-    }
 
 
 
     Column {
-        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
-        GraphUi(graph, Modifier.padding(horizontal = 10.dp).weight(1f))
-        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
-        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+
+        GraphUi(weightedGraph, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
     }
 
 }
@@ -93,4 +84,20 @@ fun main() = application {
     ) {
         App()
     }
+}
+
+@Composable
+private fun topologicalGraph(modifier: Modifier = Modifier) {
+    val (v1, v2, v3, v4, v5, v6, v7) = vertices("v1", "v2", "v3", "v4", "v5", "v6", "v7")
+
+    val topologicalSortTest = buildDirectedGraph {
+        v1.to(v5, v4, v7)
+        v2.to(v3, v5, v6)
+        v3.to(v4, v5)
+        v4.to(v5)
+        v5.to(v6, v7)
+        v6.to(v7)
+    }
+
+    GraphUi(topologicalSortTest, modifier)
 }

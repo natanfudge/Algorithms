@@ -1,5 +1,8 @@
-package algorithms
+@file:OptIn(ExperimentalTextApi::class, ExperimentalTextApi::class, ExperimentalTextApi::class)
 
+package algorithms.graphui
+
+import algorithms.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -10,7 +13,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.*
 import kotlin.math.PI
@@ -19,63 +21,6 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 // Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
-private fun Graph.chooseVertexPositions(): Map<Vertex, Offset> {
-    return when {
-        isTree() -> treePositions()
-        this.isDirected && (this as DirectedGraph).isTopologicallySortable -> topologicalSortPositions()
-        else -> regularGraphPositions()
-    }
-}
-
-private fun DirectedGraph.topologicalSortPositions(): Map<Vertex, Offset> {
-    val sorted = topologicalSort!!
-    val n = sorted.size
-    return sorted.mapIndexed { i, vertex ->
-        vertex to Offset((i) / (n - 1f), 0.5f)
-    }.toMap()
-}
-
-private fun Graph.treePositions(): Map<Vertex, Offset> {
-    val layers = mutableListOf(listOf(root()))
-    while (layers.sumOf { it.size } < vertices.size) {
-        layers.add(layers.last().flatMap { neighborsOf(it) })
-    }
-
-    val positions = mutableMapOf<Vertex, Offset>()
-
-    val depth = layers.size
-    for ((layerIndex, layerVertices) in layers.withIndex()) {
-        val yOffset = (layerIndex + 1f) / (depth + 1f)
-        val layerWidth = layerVertices.size
-        for ((vertexInLayerIndex, vertexInLayer) in layerVertices.withIndex()) {
-            val xOffset = (vertexInLayerIndex + 1f) / (layerWidth + 1f)
-            positions[vertexInLayer] = Offset(xOffset, yOffset)
-        }
-    }
-
-    return positions
-}
-//TODO: weighted graph positioning
-
-private fun Graph.regularGraphPositions(): Map<Vertex, Offset> {
-    val positionList = when (vertices.size) {
-        0 -> listOf()
-        1 -> listOf(Offset(0.5f, 0.5f))
-        2 -> listOf(Offset(0.0f, 0.5f), Offset(1f, 0.5f))
-        3 -> listOf(Offset(0.5f, 0f), Offset(0f, 1f), Offset(1f, 1f))
-        4 -> listOf(Offset(0f, 0f), Offset(1f, 0f), Offset(0f, 1f), Offset(1f, 1f))
-        else -> List(vertices.size) { i ->
-            val degree = 2.0 * PI * i / vertices.size
-            Offset(cos(degree).toFloat(), sin(degree).toFloat()) / 2F + Offset(0.5f, 0.5f)
-        }
-    }
-
-    return buildMap {
-        for ((i, position) in positionList.withIndex()) {
-            put(vertices[i], position)
-        }
-    }
-}
 
 //context(TextMeasurer)
         @OptIn(ExperimentalTextApi::class)
@@ -101,16 +46,15 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) {
     }
 }
 context(TextMeasurer)
-        @OptIn(ExperimentalTextApi::class)
+
 fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
-
-//    drawCurvedArrow(Color.Red, Offset(20f, 100f), Offset(300f, 100f))
-
-    val positions = graph.chooseVertexPositions()
+    val positions = chooseVertexPositions(graph)
         .mapValues { (_, pos) -> placeVertex(pos, bounds) }
     positions.forEach { (vertex, position) ->
         drawVertex(vertex, position)
     }
+
+    val weights = if(graph.isWeighted) graph.asWeighted.weights else null
 
     for ((i, edge) in graph.edges.withIndex()) {
         drawEdge(
@@ -118,7 +62,8 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
             positions,
             directed = graph.isDirected,
             graph.isDirected && graph.asDirected.isTopologicallySortable && !graph.isTree(),
-            i
+            i,
+            weight = weights?.getValue(edge)
         )
     }
 
@@ -133,9 +78,9 @@ private fun Offset.rotate(radians: Float): Offset {
     return Offset(x2, y2)
 }
 
-
-fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset) {
-    drawLine(color, start, end)
+context (TextContext)
+fun DrawScope.drawArrow(color: Color, start: Offset, end: Offset, text: String?) {
+    drawLine(color, start, end, text)
 
     drawArrowHead(color, start, end)
 }
@@ -179,19 +124,22 @@ fun DrawScope.drawArrowHead(color: Color, origin: Offset, end: Offset) {
 
 const val VertexRadius = 20f
 
-
+context(TextContext)
 fun DrawScope.drawEdge(
     edge: Edge,
     vertexPositions: Map<Vertex, Offset>,
     directed: Boolean,
     topologicallySortable: Boolean,
-    index: Int
-) {
+    index: Int,
+    weight: Int?,
+    ) {
     val start = vertexPositions[edge.start]?: error("Vertex ${edge.start} was not positioned, positioned: ${vertexPositions.keys}")
     val end = vertexPositions[edge.end] ?: error("Vertex ${edge.end} was not positioned, positioned: ${vertexPositions.keys}")
 
     val startToVertex = shortenedLine(end, start, shortenBy = VertexRadius)
     val endToVertex = shortenedLine(start, end, shortenBy = VertexRadius)
+
+    val text = weight?.toString()
 
     when {
         topologicallySortable -> drawCurvedArrowOnCircles(
@@ -202,8 +150,16 @@ fun DrawScope.drawEdge(
             circleRadius = VertexRadius
         )
 
-        directed -> drawArrow(Color.Black, startToVertex, endToVertex)
-        else -> drawLine(Color.Black, start = startToVertex, end = endToVertex)
+        directed -> drawArrow(Color.Black, startToVertex, endToVertex, text)
+        else -> drawLine(Color.Black, start = startToVertex, end = endToVertex, text)
+    }
+}
+context (TextContext)
+private fun DrawScope.drawLine(color: Color, start: Offset, end: Offset, label: String?) {
+    drawLine(color,start,end)
+    if(label != null){
+        val center = (start + end) / 2f
+        drawText(center,label)
     }
 }
 
@@ -231,12 +187,18 @@ private fun placeVertex(relativePosition: Offset, bounds: Rect): Offset {
     return Offset(positionX, positionY)
 }
 context(TextContext)
-@OptIn(ExperimentalTextApi::class)
 private fun DrawScope.drawVertex(vertex: Vertex, position: Offset) {
     drawCircle(vertex.color, center = position, radius = VertexRadius, style = Stroke(width = 1f))
-    val width = vertex.name.length * 7
-    drawText(this@TextContext, topLeft = position - Offset(width / 2f, 8f), text = vertex.name)
+    drawText(center = position , text = vertex.name)
 }
+
+
+context (TextContext)
+fun DrawScope.drawText(center: Offset, text: String) {
+    val width = text.length * 7
+    drawText(this@TextContext, topLeft = center - Offset(width / 2f, 8f), text = text)
+}
+
 
 @OptIn(ExperimentalTextApi::class)
 typealias TextContext = TextMeasurer

@@ -1,7 +1,5 @@
 package algorithms
 
-import java.util.*
-
 fun RootedTree.bfs() = bfs(root)
 fun RootedTree.dfs() = dfs(root)
 
@@ -52,6 +50,8 @@ fun Graph.getConnectedComponents(): List<Graph> {
     }
 }
 
+//TODO: we lose weights when doing this...
+//TODO: we should have an 'inherit property' thing going on when creating sub-graphs
 private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
     val componentBfsTrees = mutableListOf<Graph>()
 
@@ -62,7 +62,7 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
     }
 
     return componentBfsTrees.map { bfsTree ->
-        buildGraph(isDirected) {
+        val componentGraph = buildGraph(isDirected) {
             for (vertex in bfsTree.vertices) {
                 addVertex(vertex)
                 // Gets all neighbors in the [this] graph
@@ -71,6 +71,7 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
                 }
             }
         }
+        inheritAttributes(componentGraph)
     }
 }
 

@@ -23,7 +23,7 @@ sealed interface Graph {
 
     class Builder {
         private val vertices = mutableSetOf<VertexTag>()
-        private val edges = mutableSetOf<Edge.Builder>()
+        private val edges = mutableSetOf<EdgeTag>()
         fun addVertex(vertex: VertexTag): Boolean {
             if (vertex in vertices) return false
             return vertices.add(vertex)
@@ -33,7 +33,7 @@ sealed interface Graph {
 
         fun addVertex(vertex: Vertex) = addVertex(vertex.tag)
 
-        fun addEdges(vararg edges: Edge.Builder) {
+        fun addEdges(vararg edges: EdgeTag) {
             for (edge in edges) addEdge(edge)
         }
 
@@ -43,10 +43,10 @@ sealed interface Graph {
 
         fun VertexTag.to(vararg others: VertexTag) = others.forEach { addEdge(this, it) }
 
-        fun addEdge(start: VertexTag, end: VertexTag) = addEdge(Edge.Builder(start, end))
+        fun addEdge(start: VertexTag, end: VertexTag) = addEdge(EdgeTag(start, end))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
-        fun addEdge(edge: Edge.Builder): Boolean {
+        fun addEdge(edge: EdgeTag): Boolean {
             vertices.add(edge.start)
             vertices.add(edge.end)
             return edges.add(edge)
@@ -57,7 +57,7 @@ sealed interface Graph {
         fun buildUndirected() = buildImpl(directed = false)
         fun buildDirected() = buildImpl(directed = true).withAttribute(GraphAttribute.Directed)
 
-        fun build(directed: Boolean) = if(directed) buildDirected() else buildUndirected()
+        fun build(directed: Boolean) = if (directed) buildDirected() else buildUndirected()
 
         private fun buildImpl(directed: Boolean): Graph {
             val verticesOrdered = vertices.sortedBy { it.color.value }
@@ -66,11 +66,11 @@ sealed interface Graph {
             }
 
             fun VertexTag.build() = Vertex(tag = this, index = vertexToIndex.getValue(this))
-            fun Edge.Builder.build(): Edge {
+            fun EdgeTag.build(): Edge {
                 return Edge(start = start.build(), end = end.build())
             }
 
-            val actualEdges = if(directed) edges else edges.deduplicateIdenticalUndirectedEdges()
+            val actualEdges = if (directed) edges else edges.deduplicateIdenticalUndirectedEdges()
 
             return LinkedListGraph(
                 verticesOrdered.map { it.build() },
@@ -80,12 +80,12 @@ sealed interface Graph {
         }
 
         // a -> b and b -> a is the same in an undirected graph
-        private fun Set<Edge.Builder>.deduplicateIdenticalUndirectedEdges(): List<Edge.Builder> {
+        private fun Set<EdgeTag>.deduplicateIdenticalUndirectedEdges(): List<EdgeTag> {
             // By representing edges as a set of the start and end, a -> b and b -> a will be the same set.
             val deduplicated = map { (start, end) -> setOf(start, end) }.toSet()
             return deduplicated.map {
                 val (start, end) = it.toList()
-                Edge.Builder(start, end)
+                EdgeTag(start, end)
             }
         }
     }
@@ -93,12 +93,14 @@ sealed interface Graph {
 
 
 fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
-Graph.Builder().apply(builder).build(directed)
+    Graph.Builder().apply(builder).build(directed)
 
-fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): DirectedGraph =  Graph.Builder().apply(builder).buildDirected()
+fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): DirectedGraph =
+    Graph.Builder().apply(builder).buildDirected()
 
 fun buildUndirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
     buildGraph(false, builder)
+
 
 class LinkedListGraph(
     override val vertices: List<Vertex>,
@@ -148,11 +150,14 @@ data class Vertex(val color: Color, val index: Int, val name: String) {
 }
 
 data class VertexTag(val color: Color, val name: String) {
-    override fun toString(): String  = name
+    override fun toString(): String = name
 }
 
 infix fun Color.named(name: String) = VertexTag(this, name)
 
 data class Edge(val start: Vertex, val end: Vertex) {
-    data class Builder(val start: VertexTag, val end: VertexTag)
+    fun flipped() = Edge(end,start)
+    val tag = EdgeTag(start.tag, end.tag)
 }
+
+data class EdgeTag(val start: VertexTag, val end: VertexTag)

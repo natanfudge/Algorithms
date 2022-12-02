@@ -16,7 +16,7 @@ fun Graph.undirect(): Pair<Graph, Map<Vertex, List<Vertex>>> {
         neighbors[vertex] = neighborsOf(vertex)
     }
 
-    return  graph.buildUndirected() to neighbors
+    return  inheritAttributes(graph.buildUndirected()) to neighbors
 }
 
 fun Graph.direct(neighborMap: Map<Vertex,List<Vertex>>): DirectedGraph {
@@ -27,5 +27,5 @@ fun Graph.direct(neighborMap: Map<Vertex,List<Vertex>>): DirectedGraph {
             graph.addEdge(start = vertex, end = neighbor)
         }
     }
-    return graph.buildDirected()
+    return inheritAttributes(graph.buildDirected())
 }
