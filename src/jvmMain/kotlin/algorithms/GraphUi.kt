@@ -117,7 +117,7 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
             edge,
             positions,
             directed = graph.isDirected,
-            graph.isDirected && (graph as DirectedGraph).isTopologicallySortable && !graph.isTree(),
+            graph.isDirected && graph.asDirected.isTopologicallySortable && !graph.isTree(),
             i
         )
     }

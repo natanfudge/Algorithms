@@ -15,8 +15,14 @@ inline fun <reified T : GraphAttribute> Graph.withAttribute(attribute: T): Attri
     } else AttributedGraph(this, T::class, mapOf(T::class to attribute))
 
 sealed interface GraphAttribute {
-    object Directed : GraphAttribute
-    class Root(val root: Vertex) : GraphAttribute
+    object Directed : GraphAttribute {
+        override fun toString(): String  = "Directed"
+    }
+    class Root(val root: Vertex) : GraphAttribute {
+        override fun toString(): String {
+            return "Rooted at $root"
+        }
+    }
 
     class Weights(val weights: Map<Vertex, Int>) : GraphAttribute
 }
@@ -38,7 +44,7 @@ val Graph.asDirected get() = this as DirectedGraph
 typealias RootedTree = AttributedGraph<GraphAttribute.Root>
 val RootedTree.root get() = getAttribute().root
 val Graph.isRootedTree: Boolean get() = hasGenericAttribute<GraphAttribute.Root>()
-val Graph.asRootedTree get() = this as GraphAttribute.Root
+val Graph.asRootedTree get() = this as RootedTree
 
 fun Graph.rootedAt(vertexTag: VertexTag): RootedTree {
     val matchingVertex = vertices.find { it.tag == vertexTag } ?: throw IllegalArgumentException("No such vertex $vertexTag in graph.")
@@ -63,6 +69,9 @@ open class AttributedGraph<T : GraphAttribute>(
     val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>
 )  : Graph by graph{
     fun getAttribute(): T = attributes[clazz]!! as T
+    override fun toString(): String {
+        return graph.toString() + " (${attributes.values.joinToString()})"
+    }
 }
 
 

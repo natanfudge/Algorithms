@@ -77,8 +77,8 @@ private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
 fun Graph.isTree(): Boolean {
     if (isRootedTree) return true
     if (vertices.isEmpty()) return false
-    val bfsTree = bfs(vertices[0])
+    val bfsTree = bfs(root())
     return bfsTree.vertices.size == vertices.size
 }
 
-fun Graph.root() = if (isRootedTree) getGenericAttribute<GraphAttribute.Root>()!!.root else vertices[0]
+fun Graph.root() = if (isRootedTree) asRootedTree.root else vertices[0]

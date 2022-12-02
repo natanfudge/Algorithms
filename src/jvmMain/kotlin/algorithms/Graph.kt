@@ -54,10 +54,12 @@ sealed interface Graph {
 
         fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
 
-        fun buildUndirected() = build(directed = false)
-        fun buildDirected() = build(directed = true).withAttribute(GraphAttribute.Directed)
+        fun buildUndirected() = buildImpl(directed = false)
+        fun buildDirected() = buildImpl(directed = true).withAttribute(GraphAttribute.Directed)
 
-        fun build(directed: Boolean): Graph {
+        fun build(directed: Boolean) = if(directed) buildDirected() else buildUndirected()
+
+        private fun buildImpl(directed: Boolean): Graph {
             val verticesOrdered = vertices.sortedBy { it.color.value }
             val vertexToIndex = buildMap {
                 verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
@@ -73,6 +75,7 @@ sealed interface Graph {
             return LinkedListGraph(
                 verticesOrdered.map { it.build() },
                 actualEdges.map { it.build() },
+                directed
             )
         }
 
@@ -100,6 +103,7 @@ fun buildUndirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
 class LinkedListGraph(
     override val vertices: List<Vertex>,
     override val edges: List<Edge>,
+    private val directed: Boolean
 ) : Graph {
 //    class Directed(
 //        vertices: List<Vertex>,
@@ -118,7 +122,7 @@ class LinkedListGraph(
 
         for (edge in edges) {
             map[edge.start]!!.add(edge)
-            if (!isDirected) map[edge.end]!!.add(Edge(start = edge.end, end = edge.start))
+            if (!directed) map[edge.end]!!.add(Edge(start = edge.end, end = edge.start))
         }
         map
     }
@@ -127,7 +131,7 @@ class LinkedListGraph(
     override fun edgesOf(vertex: Vertex): List<Edge> = neighbors[vertex]!!
 
     override fun toString(): String {
-        return "${vertices.size} vertices, ${edges.size} edges (${if (isDirected) "Directed" else "Undirected"})"
+        return "${vertices.size} vertices, ${edges.size} edges"
     }
 
 
@@ -143,7 +147,9 @@ data class Vertex(val color: Color, val index: Int, val name: String) {
     override fun hashCode(): Int = name.hashCode()
 }
 
-data class VertexTag(val color: Color, val name: String)
+data class VertexTag(val color: Color, val name: String) {
+    override fun toString(): String  = name
+}
 
 infix fun Color.named(name: String) = VertexTag(this, name)
 

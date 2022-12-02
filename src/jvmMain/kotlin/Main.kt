@@ -77,10 +77,10 @@ fun App() {
 
 
     Column {
-//        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(topologicalSortTest, Modifier.padding(horizontal = 10.dp).weight(1f))
         GraphUi(graph, Modifier.padding(horizontal = 10.dp).weight(1f))
-//        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
-//        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
+        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
     }
 
 }
