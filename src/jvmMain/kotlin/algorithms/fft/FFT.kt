@@ -19,7 +19,6 @@ fun main() {
 }
 
 
-
 fun Vector.convolve(other: Vector): Vector {
     val pointsRequired = nextPowerOf2(this.size + other.size)
     val thisAsPoints = fft(this.padToSize(pointsRequired))
@@ -44,12 +43,14 @@ fun fft(vector: Vector): Vector {
 
 fun ifft(vector: Vector) = fftRecur(vector, indent = 0, reverse = true).asReversed().vector / vector.size
 
+private const val detailFft = false
+
 private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean): Vector {
     if (vector.size == 1) {
-        printlnIndent("FFT($vector), Return ${vectorOf(vector[0])}", indent)
+        printlnIndent(indent) { "FFT($vector), Return ${vectorOf(vector[0])}" }
         return vectorOf(vector[0])
     }
-    printlnIndent("FFT($vector):", indent)
+    printlnIndent(indent) { "FFT($vector):" }
 
     val evenPart = vector.filterIndexed { i, _ -> i % 2 == 0 }.vector
     val oddPart = vector.filterIndexed { i, _ -> i % 2 == 1 }.vector
@@ -79,21 +80,22 @@ private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean): Vector {
         result[i] = rootOfUnityPositiveValue
         result[i + n / 2] = rootOfUnityNegativeValue
 
-        printlnIndent(
-            "Calculate f($root) = $evenPartValue + $root * ($oddPartValue) = $rootOfUnityPositiveValue",
-            indent
-        )
+        printlnIndent(indent) {
+            "Calculate f($root) = $evenPartValue + $root * ($oddPartValue) = $rootOfUnityPositiveValue"
+        }
 
-        printlnIndent(
-            "Calculate f(-($root)) = $evenPartValue - ($root) * ($oddPartValue) = $rootOfUnityNegativeValue",
-            indent
-        )
+        printlnIndent(indent) {
+            "Calculate f(-($root)) = $evenPartValue - ($root) * ($oddPartValue) = $rootOfUnityNegativeValue"
+        }
     }
 
     val resultValues = result.filterNotNull().vector
-    printlnIndent("Return $resultValues", indent)
+    printlnIndent(indent) { "Return $resultValues" }
     return resultValues
 }
 
-private fun printlnIndent(string: String, indent: Int) = println("\t".repeat(indent) + string)
+private fun printlnIndent(indent: Int, string: () -> String) {
+    if (detailFft) println("\t".repeat(indent) + string())
+}
+
 private fun printIndent(string: String, indent: Int) = print("\t".repeat(indent) + string)

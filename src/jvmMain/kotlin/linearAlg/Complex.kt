@@ -1,6 +1,7 @@
 package linearAlg
 
 import linearAlg.linearspace.roundTo5DecimalSpaces
+import java.util.Objects
 import kotlin.math.sqrt
 
 //data class Imaginary(val value: Double)
@@ -12,15 +13,25 @@ operator fun Int.plus(complex: Complex) = this.toDouble() + complex
 operator fun Double.minus(complex: Complex) = Complex(this - complex.real, -complex.imaginary)
 operator fun Int.minus(complex: Complex) = this.toDouble() - complex
 
-data class Complex(val real: Double, val imaginary: Double){
-    constructor( real: Int, imaginary: Int) : this(real.toDouble(),imaginary.toDouble())
-    constructor( real: Int, imaginary: Double) : this(real.toDouble(),imaginary)
-    constructor( real: Double, imaginary: Int) : this(real,imaginary.toDouble())
-    companion object {
-        val Zero = Complex(0.0,0.0)
-        val I = Complex(0.0, 1.0)
-        val One = Complex(1.0,0.0)
+data class Complex(val real: Double, val imaginary: Double) {
+    override fun equals(other: Any?): Boolean =
+        other is Complex && real.roundTo5DecimalSpaces() == other.real.roundTo5DecimalSpaces()
+                && imaginary.roundTo5DecimalSpaces() == other.imaginary.roundTo5DecimalSpaces()
+
+    override fun hashCode(): Int {
+        return Objects.hash(real.roundTo5DecimalSpaces(), imaginary.roundTo5DecimalSpaces())
     }
+
+    constructor(real: Int, imaginary: Int) : this(real.toDouble(), imaginary.toDouble())
+    constructor(real: Int, imaginary: Double) : this(real.toDouble(), imaginary)
+    constructor(real: Double, imaginary: Int) : this(real, imaginary.toDouble())
+
+    companion object {
+        val Zero = Complex(0.0, 0.0)
+        val I = Complex(0.0, 1.0)
+        val One = Complex(1.0, 0.0)
+    }
+
     operator fun plus(other: Complex): Complex {
         return Complex(real + other.real, imaginary + other.imaginary)
     }
@@ -31,8 +42,8 @@ data class Complex(val real: Double, val imaginary: Double){
 
     operator fun times(other: Complex): Complex {
         return Complex(
-            (this.real * other.real - this.imaginary * other.imaginary).roundTo5DecimalSpaces(),
-            (this.real * other.imaginary + this.imaginary * other.real).roundTo5DecimalSpaces()
+            (this.real * other.real - this.imaginary * other.imaginary)/*.roundTo4DecimalSpaces()*/,
+            (this.real * other.imaginary + this.imaginary * other.real)/*.roundTo4DecimalSpaces()*/
         )
     }
 
@@ -48,24 +59,26 @@ data class Complex(val real: Double, val imaginary: Double){
 
     override fun toString(): String {
         val imaginaryStr = imaginary.trimDecimalPoint()
-        val realStr= real.trimDecimalPoint()
+        val realStr = real.trimDecimalPoint()
+        val roundedImaginary = imaginary.roundTo5DecimalSpaces()
+        val roundedReal = real.roundTo5DecimalSpaces()
         return when {
-            real == 0.0 -> when (imaginary) {
+            roundedReal == 0.0 -> when (roundedImaginary) {
                 0.0 -> "0"
                 1.0 -> "i"
                 -1.0 -> "-i"
                 else -> "${imaginaryStr}i"
             }
 
-            imaginary == 0.0 -> realStr
-            imaginary == 1.0 -> "$realStr + i"
-            imaginary == -1.0 -> "$realStr - i"
-            imaginary < 0 -> "$realStr - ${(-imaginary).trimDecimalPoint()}i"
+            roundedImaginary == 0.0 -> realStr
+            roundedImaginary == 1.0 -> "$realStr + i"
+            roundedImaginary == -1.0 -> "$realStr - i"
+            roundedImaginary < 0 -> "$realStr - ${(-imaginary).trimDecimalPoint()}i"
             else -> "$realStr + ${imaginaryStr}i"
         }
     }
 
-    private fun Double.trimDecimalPoint() = toString().removeSuffix(".0")
+    private fun Double.trimDecimalPoint() = roundTo5DecimalSpaces().toString().removeSuffix(".0")
 
 }
 

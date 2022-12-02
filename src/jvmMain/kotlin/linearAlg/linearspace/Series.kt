@@ -16,7 +16,7 @@ class Series<out T>(private val array: List<T>) : List<T> by array {
 /**
  * Rounds number to a few decimal spaces to prevent rounding errors from screwing comparisons up
  */
-private fun <T> T.equalsEnough(other: T): Boolean {
+fun <T> T.equalsEnough(other: T): Boolean {
     return if (this is Number && other is Number) {
         val a = this.toDouble()
         val b = other.toDouble()
@@ -25,5 +25,5 @@ private fun <T> T.equalsEnough(other: T): Boolean {
 }
 
  fun Double.roundTo5DecimalSpaces(): Double {
-    return (this * 100000).roundToInt() / 100000.0
+    return (this * 10000).roundToInt() / 10000.0
 }

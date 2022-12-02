@@ -29,7 +29,7 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
         if (this.coefficients[0] != other.coefficients[0]) return false
 
         @Suppress("UNCHECKED_CAST")
-        return zipCoefficients(other as Polynomial<T>).all { (a, b) -> a == b }
+        return zipCoefficients(other as Polynomial<T>).all { (a, b) -> a.equalsEnough(b) }
     }
 
     override fun toString(): String = buildString {
@@ -75,6 +75,7 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
 
 
      fun fftMultiply(other: Polynomial<T>): Polynomial<T> {
+         require(this.isZero || coefficients[0] is Complex || coefficients[0] is Number)
         val isComplex = this.isZero || coefficients[0] is Complex
         return this.toVector().convolve(other.toVector()).toPolynomial(isComplex)
     }
