@@ -2,34 +2,33 @@ package algorithms
 
 import java.util.*
 
-
+fun RootedTree.bfs() = bfs(root)
+fun RootedTree.dfs() = dfs(root)
 
 fun Graph.bfs(root: Vertex): RootedTree {
-    TODO()
-//    val bfsTree = Graph.Builder(directed = this.isDirected)
-//    bfsTree.addVertex(root)
-//    val visited = hashSetOf(root)
-//
-//    var currentLayer = listOf(root)
-//    do {
-//        val nextLayer = currentLayer.flatMap { vertexInLayer -> edgesOf(vertexInLayer).filter { it.end !in visited } }
-//        for (edge in nextLayer) {
-//            bfsTree.addEdge(edge)
-//            bfsTree.addVertex(edge.end)
-//            visited.add(edge.end)
-//        }
-//        currentLayer = nextLayer.map { it.end }
-//    } while (currentLayer.isNotEmpty())
-//
-//    return bfsTree.build().withAttribute(GraphAttribute.Root(root))
+    val bfsTree = Graph.Builder()
+    bfsTree.addVertex(root)
+    val visited = hashSetOf(root)
+
+    var currentLayer = listOf(root)
+    do {
+        val nextLayer = currentLayer.flatMap { vertexInLayer -> edgesOf(vertexInLayer).filter { it.end !in visited } }
+        for (edge in nextLayer) {
+            bfsTree.addEdge(edge)
+            bfsTree.addVertex(edge.end)
+            visited.add(edge.end)
+        }
+        currentLayer = nextLayer.map { it.end }
+    } while (currentLayer.isNotEmpty())
+
+    return bfsTree.build(this.isDirected).withAttribute(GraphAttribute.Root(root))
 }
 
 
 fun Graph.dfs(root: Vertex): RootedTree {
-    TODO()
-//    val dfsTree = Graph.Builder(isDirected)
-//    dfsRecur(root, dfsTree)
-//    return dfsTree.build().withAttribute(GraphAttribute.Root(root))
+    val dfsTree = Graph.Builder()
+    dfsRecur(root, dfsTree)
+    return dfsTree.build(isDirected).withAttribute(GraphAttribute.Root(root))
 }
 
 private fun Graph.dfsRecur(root: Vertex, dfsTree: Graph.Builder) {

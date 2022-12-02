@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 
@@ -39,15 +38,16 @@ fun App() {
     val a3 = Color.Red.copy(alpha = 0.2f) named "X"
     val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
 
-    val graph: Graph = TODO() /*Graph.Builder(directed = true).apply {
-        a edgeTo b
-        b edgeTo c
-        c edgeTo d
-        d edgeTo e
-        e edgeTo f
-        b edgeTo a
-        c edgeTo b
-        b edgeTo f
+    //TODO: errror
+    val graph: Graph =  buildDirectedGraph {
+//        a edgeTo b
+//        b edgeTo c
+//        c edgeTo d
+//        d edgeTo e
+//        e edgeTo f
+//        b edgeTo a
+//        c edgeTo b
+//        b edgeTo f
 
         a2 edgeTo b2
         b2 edgeTo c2
@@ -56,12 +56,12 @@ fun App() {
         e2 edgeTo c2
         f2 edgeTo e2
 
-        a3 edgeTo b3
-    }.build()*/
+//        a3 edgeTo b3
+    }
 
-    val orderedGraph = graph.vertices.first { it.tag == c }
-    val bfs = graph.bfs(orderedGraph)
-    val dfs = graph.dfs(orderedGraph)
+    val rootedGraph = graph.rootedAt(a2)
+    val bfs = rootedGraph.bfs()
+    val dfs = rootedGraph.dfs()
 
     val (v1, v2, v3, v4, v5, v6, v7) = vertices("v1", "v2", "v3", "v4", "v5", "v6", "v7")
 

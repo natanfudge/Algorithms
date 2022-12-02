@@ -27,4 +27,10 @@ fun DirectedGraph.toplogicallySort(): List<Vertex>? {
 
 
 
-val DirectedGraph.isTopologicallySortable: Boolean get() = TODO() /*topologicalSort != null*/
+val DirectedGraph.isTopologicallySortable: Boolean get() = topologicalSort != null
+
+private val sortCache = mutableMapOf<DirectedGraph,List<Vertex>?>()
+
+val DirectedGraph.topologicalSort get() = sortCache.computeIfAbsent(this){
+    toplogicallySort()
+}

@@ -187,7 +187,7 @@ fun DrawScope.drawEdge(
     topologicallySortable: Boolean,
     index: Int
 ) {
-    val start = vertexPositions[edge.start]!!
+    val start = vertexPositions[edge.start]?: error("Vertex ${edge.start} was not positioned, positioned: ${vertexPositions.keys}")
     val end = vertexPositions[edge.end] ?: error("Vertex ${edge.end} was not positioned, positioned: ${vertexPositions.keys}")
 
     val startToVertex = shortenedLine(end, start, shortenBy = VertexRadius)

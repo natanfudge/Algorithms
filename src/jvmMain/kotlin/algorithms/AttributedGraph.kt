@@ -4,61 +4,70 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
-/**
- * Allows adding attributes to a graph, e.g. direction, weight, root
- */
-open class AttributedGraph(val graph: Graph, val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>) :
-    Graph by graph
+
+//open class AttributedGraph(val graph: Graph, val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>) :
+//    Graph by graph
 
 
-inline fun <reified T : GraphAttribute> Graph.withAttribute(attribute: T): AttributedGraph1<T> =
-    if (this is AttributedGraph) {
-        AttributedGraph1(graph, T::class, attributes = attributes + (T::class to attribute))
-    } else AttributedGraph1(this, T::class, mapOf(T::class to attribute))
+inline fun <reified T : GraphAttribute> Graph.withAttribute(attribute: T): AttributedGraph<T> =
+    if (this is AttributedGraph<*>) {
+        AttributedGraph(graph, T::class, attributes = attributes + (T::class to attribute))
+    } else AttributedGraph(this, T::class, mapOf(T::class to attribute))
 
 sealed interface GraphAttribute {
-    class Directed(val topologicalSort: Lazy<List<Vertex>?>) : GraphAttribute
+    object Directed : GraphAttribute
     class Root(val root: Vertex) : GraphAttribute
 
     class Weights(val weights: Map<Vertex, Int>) : GraphAttribute
 }
 
  inline fun <reified T : GraphAttribute> Graph.getGenericAttribute(): T? =
-    if (this is AttributedGraph && T::class in attributes) attributes[T::class] as T
+    if (this is AttributedGraph<*> && T::class in attributes) attributes[T::class] as T
     else null
-
-val Graph.isDirected: Boolean get() = getGenericAttribute<GraphAttribute.Directed>() != null
-val Graph.isRootedTree: Boolean get() = getGenericAttribute<GraphAttribute.Root>() != null
+ inline fun <reified T : GraphAttribute> Graph.hasGenericAttribute(): Boolean = getGenericAttribute<T>() != null
 
 
-//val Graph.topologicalSort: List<Vertex>? get() = getAttribute<GraphAttribute.Directed>()?.topologicalSort?.value
-//val Graph.root: Vertex? get() = getAttribute<GraphAttribute.Root>()?.root
-//val Graph.weights: Map<Vertex, Int>? get() = getAttribute<GraphAttribute.Weights>()?.weights
 
 
-//TODO: start out with AttributeGraph1 approach, then try to do real strong typing and see if that works
+typealias DirectedGraph = AttributedGraph<GraphAttribute.Directed>
+//val DirectedGraph.topologicalSort: List<Vertex>? get() = getAttribute().topologicalSort.value
+val Graph.isDirected: Boolean get() = hasGenericAttribute<GraphAttribute.Directed>()
+val Graph.asDirected get() = this as DirectedGraph
 
-//TODO: this approach seems awesome.
-// for generic usages, use Graph, and relevant extensions
-// for specific usages, use type aliases of AttributedGraph1 and tailored extensions
+
+typealias RootedTree = AttributedGraph<GraphAttribute.Root>
+val RootedTree.root get() = getAttribute().root
+val Graph.isRootedTree: Boolean get() = hasGenericAttribute<GraphAttribute.Root>()
+val Graph.asRootedTree get() = this as GraphAttribute.Root
+
+fun Graph.rootedAt(vertexTag: VertexTag): RootedTree {
+    val matchingVertex = vertices.find { it.tag == vertexTag } ?: throw IllegalArgumentException("No such vertex $vertexTag in graph.")
+    return withAttribute(GraphAttribute.Root(matchingVertex))
+}
+
+
+typealias WeightedGraph = AttributedGraph<GraphAttribute.Weights>
+val Graph.isWeighted: Boolean get() = hasGenericAttribute<GraphAttribute.Weights>()
+val Graph.asWeighted get() = this as WeightedGraph
+
+
+
 
 
 /**
  * Allows adding attributes to a graph, e.g. direction, weight, root
  */
-open class AttributedGraph1<T : GraphAttribute>(
-    graph: Graph,
+open class AttributedGraph<T : GraphAttribute>(
+    val graph: Graph,
     private val clazz: KClass<T>,
-    attributes: Map<KClass<out GraphAttribute>, GraphAttribute>
-) :
-    AttributedGraph(graph, attributes) {
+    val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>
+)  : Graph by graph{
     fun getAttribute(): T = attributes[clazz]!! as T
 }
 
-typealias RootedTree = AttributedGraph1<GraphAttribute.Root>
-val RootedTree.root get() = getAttribute().root
-typealias DirectedGraph = AttributedGraph1<GraphAttribute.Directed>
-val DirectedGraph.topologicalSort: List<Vertex>? get() = getAttribute().topologicalSort.value
+
+
+
 
 
 ///**
@@ -75,6 +84,6 @@ val DirectedGraph.topologicalSort: List<Vertex>? get() = getAttribute().topologi
 //     AttributedGraph2<T1,T2>(graph,attributes)
 
 
-fun AttributedGraph1<GraphAttribute.Directed>.onlyDirected() {
-    val shit = getAttribute()
-}
+//fun AttributedGraph1<GraphAttribute.Directed>.onlyDirected() {
+//    val shit = getAttribute()
+//}
