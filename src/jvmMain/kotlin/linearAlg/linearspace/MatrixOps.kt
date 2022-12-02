@@ -29,6 +29,11 @@ fun <T, M : Matrix<T>> M.mapIndexed(map: (row: Int, column: Int, item: T) -> T):
         }.build() as M
 fun <T, M : Matrix<T>> M.map(map: (item: T) -> T): M = mapIndexed { _, _, item -> map(item)}
 
+context (Field<T>)
+fun <T, M: Matrix<T>> M.scalarMult(scalar: T): M = map { it * scalar }
+context (Field<T>)
+fun <T, M: Matrix<T>> T.scalarMult(matrix: M): M = matrix.scalarMult(this)
+
 
 context (Field<T>)
 fun <T> Matrix<T>.multiply(other: Matrix<T>): Matrix<T> {
@@ -41,6 +46,19 @@ fun <T> Matrix<T>.multiply(other: Matrix<T>): Matrix<T> {
     }
     return result.build()
 }
+
+context (Field<T>)
+fun <T, M : Matrix<T>> M.add(other: M): M {
+    require(this.height == other.height && this.width == other.width)
+    val result = Matrix.IndexBuilder.Any<T>(height,width)
+    repeat(height){ i ->
+        repeat(width){ j ->
+            result[i,j] = this[i,j] + other[i,j]
+        }
+    }
+    return result.build() as M
+}
+
 
 context(Field<T>)
 fun <T, M : Matrix<T>> M.multiplySquare(other: M): M = multiply(other) as M
@@ -90,6 +108,6 @@ context (Field<T>)
 fun <T> Matrix.Square<T>.inverse(): Matrix.Square<T>? {
     val det = determinant()
     if (det == Zero) return null
-    val inverse = (Identity / det)
+    val inverse = (One / det)
     return inverse * adjugate()
 }

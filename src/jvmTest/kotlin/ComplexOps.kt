@@ -1,5 +1,4 @@
 import linearAlg.Complex
-import linearAlg.linearspace.times
 import linearAlg.plus
 import linearAlg.times
 import org.junit.Test

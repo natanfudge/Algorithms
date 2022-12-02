@@ -8,7 +8,21 @@ interface Field<T> {
     fun T.inverse(): T
 
     val Zero: T
-    val Identity: T
+    val One: T
+}
+
+sealed interface NumericField<T> : Field<T> {
+    operator fun T.times(num: Int): T
+}
+
+context (Field<T>)
+fun <T> T.pow(power: Int): T {
+    require(power >= 0)
+    var value = One
+    repeat(power){
+        value *= this
+    }
+    return value
 }
 
 
@@ -22,7 +36,7 @@ context (Field<T>)
     return this * other.inverse()
 }
 
-object RealNumbers : Field<Number> {
+object RealNumbers : NumericField<Number> {
     override fun Number.plus(other: Number): Number {
         return when (this) {
             is Int -> {
@@ -57,11 +71,15 @@ object RealNumbers : Field<Number> {
         return 1.0 / this.toDouble()
     }
 
+    override fun Number.times(num: Int): Number {
+        return this * (num as Number)
+    }
+
     override val Zero: Number = 0
-    override val Identity: Number = 1
+    override val One: Number = 1
 }
 
-object ComplexNumbers : Field<Complex> {
+object ComplexNumbers : NumericField<Complex> {
     override fun Complex.plus(other: Complex): Complex  = this + other
 
     override fun Complex.unaryMinus(): Complex  = -this
@@ -69,9 +87,10 @@ object ComplexNumbers : Field<Complex> {
     override fun Complex.times(other: Complex): Complex  = this * other
 
     override fun Complex.inverse(): Complex  = inverse
+    override fun Complex.times(num: Int): Complex  = this * Complex(num, 0)
 
     override val Zero: Complex = Complex.Zero
-    override val Identity: Complex = Complex.One
+    override val One: Complex = Complex.One
 
 }
 

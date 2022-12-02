@@ -2,20 +2,17 @@ package linearAlg.linearspace
 
 import algorithms.fft.Vector
 import algorithms.fft.convolve
-import linearAlg.Complex
-import linearAlg.ComplexNumbers
-import linearAlg.Field
-import linearAlg.justReal
+import linearAlg.*
 import kotlin.math.max
 
-val <T : Any> Field<T>.zeroPolynomial get() = Polynomial(listOf(), this)
+val <T : Any> NumericField<T>.zeroPolynomial get() = Polynomial(listOf(), this)
 
-class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>) {
+class Polynomial<T : Any>(val coefficients: List<T>, private val field: NumericField<T>) {
     val isZero get() = this == field.zeroPolynomial
 
     companion object {
-        context (Field<T>)
-        fun <T : Any> of(vararg coefficients: T) = Polynomial(coefficients.toList(), this@Field)
+        context (NumericField<T>)
+        fun <T : Any> of(vararg coefficients: T) = Polynomial(coefficients.toList(), this@NumericField)
 
         fun ofComplex(vararg coefficients: Number) =
             Polynomial(coefficients.toList().map { it.toDouble().justReal }, ComplexNumbers)
@@ -55,6 +52,24 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
             return coefficients.asReversed().indexOfFirst { it != this.field.Zero }
         }
 
+    val upperCoefficient: T get() = coefficients[degree]
+
+    val derivative: Polynomial<T>
+        get() = with(this.field) {
+            Polynomial(coefficients.drop(1).mapIndexed { i, c -> c * (i + 1) }, this)
+        }
+
+    fun evaluate(value: T): T = with(field) {
+        var sum = field.Zero
+        var xValue = field.One
+        coefficients.forEach { coefficient ->
+            sum += coefficient * xValue
+            xValue *= value
+        }
+
+        sum
+    }
+
     operator fun plus(other: Polynomial<T>): Polynomial<T> = with(field) {
         Polynomial(zipCoefficients(other).map { (a, b) -> a + b }, field)
     }
@@ -73,15 +88,14 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
     }
 
 
-
-     fun fftMultiply(other: Polynomial<T>): Polynomial<T> {
-         require(this.isZero || coefficients[0] is Complex || coefficients[0] is Number)
+    fun fftMultiply(other: Polynomial<T>): Polynomial<T> {
+        require(this.isZero || coefficients[0] is Complex || coefficients[0] is Number)
         val isComplex = this.isZero || coefficients[0] is Complex
         return this.toVector().convolve(other.toVector()).toPolynomial(isComplex)
     }
 
     private fun Vector.toPolynomial(complex: Boolean) = Polynomial(
-        asReversed().map {
+        trimLeadingZeroes().map {
             if (complex) it as T
             else {
                 check(it.imaginary == 0.0)
@@ -89,6 +103,19 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
             }
         }, field
     )
+
+    private fun Vector.trimLeadingZeroes(): Vector {
+        val newItems = mutableListOf<Complex>()
+        var reachedNonZero = false
+        for (item in this) {
+            if (reachedNonZero || item != Complex.Zero) {
+                newItems.add(item)
+                reachedNonZero = true
+            }
+        }
+        return Vector(newItems)
+    }
+
 
     private fun toVector(): Vector {
         return Vector(coefficients.asReversed().map {
@@ -109,6 +136,7 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: Field<T>
     }
 
 }
+
 
 // Power of 1 is the same as not having anything
 private val powers = listOf("⁰", "", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹")

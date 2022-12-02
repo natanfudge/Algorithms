@@ -60,6 +60,7 @@ class PolynomialTest {
             )
         )
     }
+
     @Test
     fun testMult(): Unit = with(ComplexNumbers) {
         val p1 = Polynomial.ofComplex(1, -4, 2)
@@ -75,17 +76,17 @@ class PolynomialTest {
         expectThat(p1 * p2).isEqualTo(
             Polynomial.of(
                 1 + I,
-                - 2 - 5 * I,
+                -2 - 5 * I,
                 -9 + 8 * I,
                 12 - 14 * I,
                 10 + 20 * I,
-                - 8 - 8 * I,
+                -8 - 8 * I,
             )
         )
     }
+
     @Test
     fun testFFTMult(): Unit = with(ComplexNumbers) {
-        //TODO: seems like it's flipped, see why.
         val p1 = Polynomial.ofComplex(1, -4, 2)
         val p2 = Polynomial.of(
             1 + I,
@@ -94,18 +95,49 @@ class PolynomialTest {
             -4 - 4 * I
         )
 
-//        println(p1 * p2)
-
-        expectThat(p1.fftMultiply(p2) ).isEqualTo(
+        expectThat(p1.fftMultiply(p2)).isEqualTo(
             Polynomial.of(
                 1 + I,
-                - 2 - 5 * I,
+                -2 - 5 * I,
                 -9 + 8 * I,
                 12 - 14 * I,
                 10 + 20 * I,
-                - 8 - 8 * I,
+                -8 - 8 * I,
             )
         )
+    }
+
+    @Test
+    fun testEvaluate(): Unit = with(ComplexNumbers) {
+        val p = Polynomial.of(
+            3.justReal,
+            2 * I,
+            -3 * I,
+            4.justReal,
+            (-5).justReal,
+            1 + I,
+            2 - I,
+            -3 + 2 * I,
+            -4 - 4 * I
+        )
+
+        expectThat(p.evaluate(Complex.Zero)).isEqualTo(3.justReal)
+        expectThat(p.evaluate(Complex.One)).isEqualTo(-2 - 3 * I)
+        expectThat(p.evaluate(5.justReal)).isEqualTo(-1765122 - 1418815 * I)
+        expectThat(p.evaluate(2 - 1 / 3.0 * I)).isEqualTo(-8353249 / 6561.0 + (7855886 * I) / 6561.0)
+    }
+
+
+    @Test
+    fun testDerivative(): Unit = with(ComplexNumbers){
+        val p = Polynomial.of(
+            3.justReal,
+            2 * I,
+            -3 * I,
+            4.justReal,
+        )
+
+        expectThat(p.derivative).isEqualTo(Polynomial.of(2 * I, - 6 * I, 12.justReal))
     }
 }
 

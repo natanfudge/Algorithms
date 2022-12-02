@@ -106,7 +106,7 @@ class MatrixOps {
     }
 
     @Test
-    fun identity() {
+    fun identity(): Unit = with(RealNumbers){
         expectThat(Matrix.identity(5)).isEqualTo(
             squareMatrix {
                 row(1, 0, 0, 0, 0)
@@ -193,5 +193,39 @@ class MatrixOps {
         }
         expectThat(matrix.multiply(matrix.inverse()!!)).isEqualTo(Matrix.identity(5))
         println(matrix.multiply(matrix.inverse()!!))
+    }
+
+    @Test
+    fun plus(): Unit = with(RealNumbers){
+        val a = squareMatrix {
+            row(1,2,3)
+            row(3,4,5)
+            row(-2,3,1)
+        }
+        val b = squareMatrix {
+            row(0,0,0)
+            row(1,1,1)
+            row(-1,0,1)
+        }
+
+        expectThat(a.add(b)).isEqualTo(squareMatrix {
+            row(1,2,3)
+            row(4,5,6)
+            row(-3,3,2)
+        })
+    }
+    @Test
+    fun mult(): Unit = with(RealNumbers){
+        val a = squareMatrix {
+            row(1,2,3)
+            row(3,4,5)
+            row(-2,3,1)
+        }
+
+        expectThat(a.scalarMult(3)).isEqualTo(squareMatrix {
+            row(3,6,9)
+            row(9,12,15)
+            row(-6,9,3)
+        })
     }
 }

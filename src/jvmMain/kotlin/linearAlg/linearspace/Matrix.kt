@@ -10,17 +10,28 @@ typealias MutableTwoDimArray<T> = MutableList<MutableList<T>>
 sealed class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>) {
     class NonSquare<out T>(_rows: TwoDimArray<T>) : Matrix<T>(_rows)
     class Square<out T>(_rows: TwoDimArray<T>) : Matrix<T>(_rows) {
+        val order get() = height
         init {
             require(height == width)
         }
     }
 
     companion object {
-        fun identity(order: Int) = IndexBuilder.Square<Int>(order).also { builder ->
+        context(Field<T>)
+        fun <T>identity(order: Int) = IndexBuilder.Square<T>(order).also { builder ->
             repeat(order) { i ->
                 repeat(order) { j ->
-                    if (i == j) builder[i, j] = 1
-                    else builder[i, j] = 0
+                    if (i == j) builder[i, j] = One
+                    else builder[i, j] = Zero
+                }
+            }
+        }.build()
+
+        context(Field<T>)
+        fun <T> zero(order: Int) = IndexBuilder.Square<T>(order).also { builder ->
+            repeat(order) { i ->
+                repeat(order) { j ->
+                    builder[i,j] = Zero
                 }
             }
         }.build()
@@ -44,6 +55,8 @@ sealed class Matrix<out T> private constructor(private val _rows: TwoDimArray<T>
             _rows[rowIndex][colIndex]
         })
     }
+
+
 
 
     sealed class IndexBuilder<T, M : Matrix<T>>(val height: Int, val width: Int) {
