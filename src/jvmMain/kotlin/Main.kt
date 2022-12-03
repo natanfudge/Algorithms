@@ -17,18 +17,19 @@ import androidx.compose.ui.window.application
 fun App() {
 
     // (1.0, 0.0, 0.0)
-    val a = Color.Red named "Red"
+    val red = Color.Red named "Red"
     // (0.0, 1.0, 0.0)
-    val b = Color.Green named "Green"
+    val green = Color.Green named "Green"
     // (0.0, 0.0, 1.0)
-    val c = Color.Blue named "Blue"
+    val blue = Color.Blue named "Blue"
     // (0.0, 0.0, 0.0)
-    val d = Color.Black named "Black"
+    val black = Color.Black named "Black"
     // (0.0, 1.0, 1.0)
-    val e = Color.Cyan named "Cyan"
+    val cyan = Color.Cyan named "Cyan"
     // (1.0, 1.0, 0.0)
-    val f = Color.Yellow named "Yellow"
+    val yellow = Color.Yellow named "Yellow"
 
+    //TODO :create nodes by delegation
     val a2 = Color.Red.copy(alpha = 0.5f) named "a2"
     val b2 = Color.Green.copy(alpha = 0.5f) named "b2"
     val c2 = Color.Blue.copy(alpha = 0.5f) named "c3"
@@ -40,27 +41,29 @@ fun App() {
     val b3 = Color.Green.copy(alpha = 0.2f) named "Y"
 
     val graph: Graph = buildDirectedGraph {
-        a.to(b)
-        b.to(a, c, f)
-        c.to(b, d)
-        d.to(e)
-        e.to(f)
+        red.to(green)
+        green.to(red, blue, yellow)
+        blue.to(green, black)
+        black.to(cyan)
+        cyan.to(yellow)
 //
-//        a2 edgeTo b2
-//        b2 edgeTo c2
-//        c2 edgeTo a2
-//        d2 edgeTo a2
-//        e2 edgeTo c2
-//        f2 edgeTo e2
-//
-//        a3 edgeTo b3
+        a2 edgeTo b2
+        b2 edgeTo c2
+        c2 edgeTo a2
+        d2 edgeTo a2
+        e2 edgeTo c2
+        f2 edgeTo e2
+
+
+        a3 edgeTo b3
     }
 
     val weights = graph.edges.associateWith { 1 }
 
     val weightedGraph = graph.withWeights(weights)
 
-    val rootedGraph = graph.rootedAt(c)
+//    val rootedGraph = graph.rootedAt(blue)
+    val rootedGraph = graph.rootedAt(red)
     val bfs = rootedGraph.bfs()
     val dfs = rootedGraph.dfs()
 
@@ -68,8 +71,8 @@ fun App() {
 
 
     Column {
-
-        GraphUi(weightedGraph, Modifier.padding(horizontal = 10.dp).weight(1f))
+//        topologicalGraph( Modifier.padding(horizontal = 10.dp))
+        GraphUi(weightedGraph, Modifier.padding(10.dp).weight(1f))
 //        GraphUi(bfs, Modifier.padding(horizontal = 10.dp).weight(1f))
 //        GraphUi(dfs, Modifier.padding(horizontal = 10.dp).weight(1f))
     }
@@ -92,12 +95,18 @@ private fun topologicalGraph(modifier: Modifier = Modifier) {
 
     val topologicalSortTest = buildDirectedGraph {
         v1.to(v5, v4, v7)
-        v2.to(v3, v5, v6)
-        v3.to(v4, v5)
-        v4.to(v5)
-        v5.to(v6, v7)
-        v6.to(v7)
+        v4.to(v7)
+        v5.to(v7)
+//        v2.to(v3, v5, v6)
+//        v3.to(v4, v5)
+//        v4.to(v5)
+//        v5.to(v6, v7)
+//        v6.to(v7)
     }
 
-    GraphUi(topologicalSortTest, modifier)
+    val weights = topologicalSortTest.edges.associateWith { 1 }
+    val weightedGraph = topologicalSortTest.withWeights(weights)
+
+//    GraphUi(topologicalSortTest, modifier)
+    GraphUi(weightedGraph, modifier)
 }

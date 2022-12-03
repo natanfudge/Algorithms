@@ -6,6 +6,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+// Returns offset values from (0,0) to (1,1), (0,0) being top left and (1,1) being bottom right
  fun chooseVertexPositions(graph: Graph): Map<Vertex, Offset> {
     return when {
         graph.isTree() -> graph.treePositions()

@@ -23,7 +23,7 @@ open class AttributedGraph<T : GraphAttribute>(
 
 
 fun <G : Graph> Graph.inheritAttributes(toGraph: G): G {
-    if (this !is AttributedGraph<*>) return this as G
+    if (this !is AttributedGraph<*>) return toGraph
     var sum: G = toGraph
     for (attribute in attributes.values) {
         sum = attribute.inherit(sum) as G

@@ -49,9 +49,6 @@ fun Graph.getConnectedComponents(): List<Graph> {
         return undirected.getUndirectedConnectedComponents().map { it.direct(neighborMap) }
     }
 }
-
-//TODO: we lose weights when doing this...
-//TODO: we should have an 'inherit property' thing going on when creating sub-graphs
 private fun Graph.getUndirectedConnectedComponents(): List<Graph> {
     val componentBfsTrees = mutableListOf<Graph>()
 
@@ -79,7 +76,7 @@ fun Graph.isTree(): Boolean {
     if (isRootedTree) return true
     if (vertices.isEmpty()) return false
     val bfsTree = bfs(root())
-    return bfsTree.vertices.size == vertices.size
+    return bfsTree.edges.size == edges.size
 }
 
 fun Graph.root() = if (isRootedTree) asRootedTree.root else vertices[0]
