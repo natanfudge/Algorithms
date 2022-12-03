@@ -1,6 +1,8 @@
 package algorithms
 
 import androidx.compose.ui.graphics.Color
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 
 sealed interface Graph {
@@ -47,6 +49,9 @@ sealed interface Graph {
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
         fun addEdge(edge: EdgeTag): Boolean {
+            require(edge.start != edge.end) {
+                "Edge is a loop on vertex ${edge.start}, and loops are not supported"
+            }
             vertices.add(edge.start)
             vertices.add(edge.end)
             return edges.add(edge)
@@ -154,6 +159,14 @@ data class VertexTag(val color: Color, val name: String) {
 }
 
 infix fun Color.named(name: String) = VertexTag(this, name)
+
+class VertexTagProperty(private val color: Color): ReadOnlyProperty<Any?,VertexTag>{
+    override fun getValue(thisRef: Any?, property: KProperty<*>): VertexTag {
+        return VertexTag(color, property.name)
+    }
+}
+
+fun vertex(color: Color) = VertexTagProperty(color)
 
 data class Edge(val start: Vertex, val end: Vertex) {
     fun flipped() = Edge(end,start)
