@@ -76,7 +76,7 @@ fun Graph.isTree(): Boolean {
     if (isRootedTree) return true
     if (vertices.isEmpty()) return false
     val bfsTree = bfs(root())
-    return bfsTree.edges.size == edges.size
+    return bfsTree.edges.size == edges.size && bfsTree.vertices.size == vertices.size
 }
 
 fun Graph.root() = if (isRootedTree) asRootedTree.root else vertices[0]

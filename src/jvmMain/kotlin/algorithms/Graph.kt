@@ -1,5 +1,6 @@
 package algorithms
 
+import algorithms.graphui.GraphUi
 import androidx.compose.ui.graphics.Color
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -39,22 +40,23 @@ sealed interface Graph {
             for (edge in edges) addEdge(edge)
         }
 
-        infix fun VertexTag.edgeTo(other: VertexTag): Boolean {
+        infix fun VertexTag.edgeTo(other: VertexTag): EdgeTag {
             return addEdge(this, other)
         }
 
-        fun VertexTag.to(vararg others: VertexTag) = others.forEach { addEdge(this, it) }
+        fun VertexTag.to(vararg others: VertexTag) = others.map { addEdge(this, it) }
 
         fun addEdge(start: VertexTag, end: VertexTag) = addEdge(EdgeTag(start, end))
         fun addEdge(start: Vertex, end: Vertex) = addEdge(start.tag, end.tag)
 
-        fun addEdge(edge: EdgeTag): Boolean {
+        fun addEdge(edge: EdgeTag): EdgeTag {
             require(edge.start != edge.end) {
                 "Edge is a loop on vertex ${edge.start}, and loops are not supported"
             }
             vertices.add(edge.start)
             vertices.add(edge.end)
-            return edges.add(edge)
+            edges.add(edge)
+            return edge
         }
 
         fun addEdge(edge: Edge) = addEdge(edge.start.tag, edge.end.tag)
@@ -65,7 +67,7 @@ sealed interface Graph {
         fun build(directed: Boolean) = if (directed) buildDirected() else buildUndirected()
 
         private fun buildImpl(directed: Boolean): Graph {
-            val verticesOrdered = vertices.sortedBy { it.color.value }
+            val verticesOrdered = vertices.sortedBy { it.name }
             val vertexToIndex = buildMap {
                 verticesOrdered.forEachIndexed { index, tag -> put(tag, index) }
             }
@@ -96,6 +98,10 @@ sealed interface Graph {
     }
 }
 
+fun Graph.matchingEdge(tag: EdgeTag) =     edges.find { it.tag == tag }
+    ?: throw IllegalArgumentException("No such edge $tag in graph.")
+fun Graph.matchingVertex(tag: VertexTag) =     vertices.find { it.tag == tag }
+    ?: throw IllegalArgumentException("No such vertex $tag in graph.")
 
 fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
     Graph.Builder().apply(builder).build(directed)
@@ -106,23 +112,34 @@ fun buildDirectedGraph(builder: Graph.Builder.() -> Unit): DirectedGraph =
 fun buildUndirectedGraph(builder: Graph.Builder.() -> Unit): Graph =
     buildGraph(false, builder)
 
+fun buildWeightedGraph(directed: Boolean,defaultWeight: Int = 1, builder: context(Graph.Builder, WeightsBuilder)() -> Unit): WeightedGraph {
+    val graphBuilder = Graph.Builder()
+    val weightBuilder= WeightsBuilder()
+    builder(graphBuilder,weightBuilder)
+    val graph = graphBuilder.build(directed)
+    val weights = graph.edges.map { it.tag }.associateWith { defaultWeight } + WeightsBuilder().build()
+    return graph.withWeightTags(weights)
+}
+
+class WeightsBuilder {
+    private val weights: MutableMap<EdgeTag,Int> = mutableMapOf()
+    fun EdgeTag.weighing(weight: Int) {
+        weights[this] = weight
+    }
+
+    fun List<EdgeTag>.weighing(vararg weights: Int) {
+        require(this.size == weights.size)
+        zip(weights.toList()).forEach { (tag, weight) -> tag.weighing(weight) }
+    }
+    fun build(): Map<EdgeTag, Int> = weights
+}
+
 
 class LinkedListGraph(
     override val vertices: List<Vertex>,
     override val edges: List<Edge>,
     private val directed: Boolean
 ) : Graph {
-//    class Directed(
-//        vertices: List<Vertex>,
-//        edges: List<Edge>
-//    ) : Graph.Directed, LinkedListGraph(vertices, edges) {
-//        override val topologicalSort: List<Vertex>? by lazy {toplogicallySort()}
-//    }
-
-//    class Undirected(
-//        vertices: List<Vertex>,
-//        edges: List<Edge>
-//    ) : Graph.Undirected, LinkedListGraph(vertices, edges)
 
     private val neighbors: Map<Vertex, List<Edge>> = run {
         val map = vertices.associateWith { mutableListOf<Edge>() }

@@ -233,7 +233,11 @@ private fun DrawScope.drawTextBetweenTwoPoints(
     center: Offset,
     label: String
 ) {
-    rotateRad(angleBetweenTwoPointsRad(start, end), pivot = center) {
+    val angle = angleBetweenTwoPointsRad(start, end)
+    val upsideDownRange = 3/4f * PI.. 5/4f * PI
+    // If the angle causes the text to be upside down, flip it by adding pi
+    val actualAngle = if(angle in upsideDownRange) angle + PI.toFloat() else angle
+    rotateRad(actualAngle, pivot = center) {
         drawText(center, label, textStyle = TextStyle(fontSize = 24.sp))
     }
 }

@@ -1,5 +1,6 @@
 package algorithms
 
+import org.jetbrains.annotations.Debug.Renderer
 import kotlin.reflect.KClass
 
 
@@ -10,6 +11,7 @@ import kotlin.reflect.KClass
 /**
  * Allows adding attributes to a graph, e.g. direction, weight, root
  */
+@Renderer(text = "\"Graph:\" + toString()")
 open class AttributedGraph<T : GraphAttribute>(
     val graph: Graph,
     private val clazz: KClass<T>,
@@ -91,9 +93,7 @@ val Graph.isRootedTree: Boolean get() = hasGenericAttribute<GraphAttribute.Root>
 val Graph.asRootedTree get() = this as RootedTree
 
 fun Graph.rootedAt(vertexTag: VertexTag): RootedTree {
-    val matchingVertex = vertices.find { it.tag == vertexTag }
-        ?: throw IllegalArgumentException("No such vertex $vertexTag in graph.")
-    return rootedAt(matchingVertex)
+    return rootedAt(matchingVertex(vertexTag))
 }
 
 fun Graph.rootedAt(vertex: Vertex): RootedTree {

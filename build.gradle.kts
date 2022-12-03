@@ -36,6 +36,7 @@ kotlin {
                 implementation("org.jetbrains.compose.ui:ui-graphics-desktop:$composeVersion")
                 implementation("org.jetbrains.compose.ui:ui-geometry-desktop:$composeVersion")
                 implementation("org.jetbrains.compose.foundation:foundation-desktop:$composeVersion")
+                compileOnly("org.jetbrains:annotations:23.0.0")
             }
         }
         val jvmTest by getting {
