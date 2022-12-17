@@ -1,7 +1,4 @@
-import algorithms.intervals.IntervalProblem
-import algorithms.intervals.Request
-import algorithms.intervals.pickByEarliest
-import algorithms.intervals.pickBySmallestTimeInterval
+import algorithms.intervals.*
 import org.junit.Test
 
 class Intervals {
@@ -15,7 +12,7 @@ class Intervals {
             Request(7,8)
         )
 //    val reqA = Request(0, 5)
-        println(caseA.solvedBy(::pickByEarliest))
+        println(caseA.solvedBy(IntervalChoiceAlgorithm::byEarliest))
     }
 
     @Test
@@ -25,6 +22,6 @@ class Intervals {
             Request(7,12),
             Request(4,8)
         )
-        println(caseB.solvedBy(::pickBySmallestTimeInterval))
+        println(caseB.solvedBy(IntervalChoiceAlgorithm::bySmallestTimeInterval))
     }
 }
