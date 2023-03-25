@@ -3,16 +3,11 @@ package algorithms
 import org.jetbrains.annotations.Debug.Renderer
 import kotlin.reflect.KClass
 
-
-//open class AttributedGraph(val graph: Graph, val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>) :
-//    Graph by graph
-
-
 /**
  * Allows adding attributes to a graph, e.g. direction, weight, root
  */
 @Renderer(text = "\"Graph:\" + toString()")
-open class AttributedGraph<T : GraphAttribute>(
+ class AttributedGraph<T : GraphAttribute>(
     val graph: Graph,
     private val clazz: KClass<T>,
     val attributes: Map<KClass<out GraphAttribute>, GraphAttribute>
@@ -45,7 +40,6 @@ sealed interface GraphAttribute {
     object Directed : GraphAttribute {
         override fun inherit(graph: Graph): Graph {
             return graph
-//            return graph.withAttribute(Directed)
         }
 
         override fun toString(): String = "Directed"
@@ -81,7 +75,6 @@ inline fun <reified T : GraphAttribute> Graph.hasGenericAttribute(): Boolean = g
 
 typealias DirectedGraph = AttributedGraph<GraphAttribute.Directed>
 
-//val DirectedGraph.topologicalSort: List<Vertex>? get() = getAttribute().topologicalSort.value
 val Graph.isDirected: Boolean get() = hasGenericAttribute<GraphAttribute.Directed>()
 val Graph.asDirected get() = this as DirectedGraph
 
@@ -117,20 +110,3 @@ private fun Map<EdgeTag, Int>.compileWeights(graph: Graph): Map<Edge, Int> {
 }
 
 
-///**
-// * Allows adding attributes to a graph, e.g. direction, weight, root
-// */
-//open class AttributedGraph2<T1: GraphAttribute, T2>(graph: Graph,clazz1: KClass<T1>,  attributes: Map<KClass<out GraphAttribute>, GraphAttribute>) :
-//     AttributedGraph1<T1>(graph,attributes)
-//
-//
-///**
-// * Allows adding attributes to a graph, e.g. direction, weight, root
-// */
-//class AttributedGraph3<T1: GraphAttribute, T2, T3>(graph: Graph,attributes: Map<KClass<out GraphAttribute>, GraphAttribute>) :
-//     AttributedGraph2<T1,T2>(graph,attributes)
-
-
-//fun AttributedGraph1<GraphAttribute.Directed>.onlyDirected() {
-//    val shit = getAttribute()
-//}

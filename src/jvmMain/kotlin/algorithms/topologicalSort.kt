@@ -1,9 +1,6 @@
 package algorithms
 
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
-
-fun DirectedGraph.toplogicallySort(): List<Vertex>? {
+fun DirectedGraph.topologicallySort(): List<Vertex>? {
     val activeIncomingEdges: MutableMap<Vertex,Int> = vertices.associateWith { 0 }.toMutableMap()
     val noIncomingActiveEdges = mutableSetOf<Vertex>()
 
@@ -32,5 +29,5 @@ val DirectedGraph.isTopologicallySortable: Boolean get() = topologicalSort != nu
 private val sortCache = mutableMapOf<DirectedGraph,List<Vertex>?>()
 
 val DirectedGraph.topologicalSort get() = sortCache.computeIfAbsent(this){
-    toplogicallySort()
+    topologicallySort()
 }

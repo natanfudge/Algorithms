@@ -21,6 +21,12 @@ fun List<Request>.renderToString() = buildString {
     }
 }
 
+/**
+ * On the first line, prints out the solution calculated by the [algorithm].
+ * It then takes out all the segments that were chosen, and runs the [algorithm] again with what is remaining,
+ * and prints out the result on the next line.
+ * It keeps doing this until no more intervals are left.
+ */
 fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = buildString {
     var currentProblem = this@IntervalProblem
     while (currentProblem.isNotEmpty()) {
@@ -34,8 +40,9 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
 
 fun interface IntervalChoiceAlgorithm {
     fun solve(problem: IntervalProblem): IntervalChoice
+
     companion object {
-        fun pickByEarliest(requests: IntervalProblem): IntervalChoice {
+        fun byEarliestStart(requests: IntervalProblem): IntervalChoice {
             val byStart = requests.sortedBy { it.start }
             val solution = mutableListOf<Request>()
             for (request in byStart) {
@@ -54,7 +61,7 @@ fun interface IntervalChoiceAlgorithm {
                     solution.add(request)
                 }
             }
-            return algorithms.intervals.IntervalChoice(solution)
+            return IntervalChoice(solution)
         }
 
         fun byFewestConflicts(requests: IntervalProblem): IntervalChoice {
@@ -65,7 +72,7 @@ fun interface IntervalChoiceAlgorithm {
                     solution.add(request)
                 }
             }
-            return algorithms.intervals.IntervalChoice(solution)
+            return IntervalChoice(solution)
         }
 
         fun byEarliestEnding(requests: IntervalProblem): IntervalChoice {
@@ -76,34 +83,8 @@ fun interface IntervalChoiceAlgorithm {
                     solution.add(request)
                 }
             }
-            return algorithms.intervals.IntervalChoice(solution)
+            return IntervalChoice(solution)
         }
     }
-}
-
-
-
-fun main() {
-    val caseA = IntervalProblem.of(
-        Request(0, 9),
-        Request(1, 2),
-        Request(3, 4),
-        Request(5, 6),
-        Request(7, 8)
-    )
-    val caseB = IntervalProblem.of(
-        Request(0, 5),
-        Request(7, 12),
-        Request(4, 8)
-    )
-    val caseC = IntervalProblem.of(
-        Request(0, 6), Request(8, 12), Request(15, 21), Request(23, 29),
-        Request(5, 9), Request(11, 16), Request(20, 24),
-        Request(5, 9), Request(20, 24),
-        Request(5, 9), Request(20, 24)
-    )
-    println(caseA.solvedBy(IntervalChoiceAlgorithm::byEarliestEnding))
-    println(caseB.solvedBy(IntervalChoiceAlgorithm::byEarliestEnding))
-    println(caseC.solvedBy(IntervalChoiceAlgorithm::byEarliestEnding))
 }
 

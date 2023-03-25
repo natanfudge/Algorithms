@@ -17,7 +17,7 @@ class TopologicalSort {
             v6.to(v7)
         }
 
-        expectThat(graph.toplogicallySort()?.map { it.tag }).isContainedIn(listOf(
+        expectThat(graph.topologicallySort()?.map { it.tag }).isContainedIn(listOf(
             listOf(v1, v2, v3, v4, v5, v6, v7),
             listOf(v2, v1, v3, v4, v5, v6, v7)
         ))
@@ -34,7 +34,7 @@ class TopologicalSort {
             v6.to(v7)
         }
 
-        expectThat(graph.toplogicallySort()?.map { it.tag }).isEqualTo(listOf(v1, v2, v3, v4, v5, v6, v7),)
+        expectThat(graph.topologicallySort()?.map { it.tag }).isEqualTo(listOf(v1, v2, v3, v4, v5, v6, v7),)
     }
     @Test
     fun testUnsuccessfulSort2(){
@@ -48,6 +48,6 @@ class TopologicalSort {
             v6.to(v7)
         }
 
-        expectThat(graph.toplogicallySort()?.map { it.tag }).isEqualTo(null)
+        expectThat(graph.topologicallySort()?.map { it.tag }).isEqualTo(null)
     }
 }
