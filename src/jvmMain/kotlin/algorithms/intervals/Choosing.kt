@@ -38,7 +38,7 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
     }
 }
 
-fun interface IntervalChoiceAlgorithm {
+ interface IntervalChoiceAlgorithm {
     fun solve(problem: IntervalProblem): IntervalChoice
 
     companion object {
