@@ -1,7 +1,7 @@
 package algorithms.intervals
 
 
-class IntervalChoice(private val requests: List<Request>) : List<Request> by requests {
+class IntervalChoice(private val requests: List<Interval>) : List<Interval> by requests {
     init {
         requests.zipWithNext().forEach { (prev, next) ->
             require(prev.end != next.start)
@@ -11,8 +11,8 @@ class IntervalChoice(private val requests: List<Request>) : List<Request> by req
     override fun toString(): String = renderToString()
 }
 
-fun List<Request>.renderToString() = buildString {
-    var lastRequest: Request? = null
+fun List<Interval>.renderToString() = buildString {
+    var lastRequest: Interval? = null
     for (request in sortedBy { it.start }) {
         val leadingWhitespace = request.start - (lastRequest?.end?.let { it + 1 } ?: 0)
         append(" ".repeat(leadingWhitespace))
@@ -38,13 +38,13 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
     }
 }
 
- interface IntervalChoiceAlgorithm {
+fun interface IntervalChoiceAlgorithm {
     fun solve(problem: IntervalProblem): IntervalChoice
 
     companion object {
         fun byEarliestStart(requests: IntervalProblem): IntervalChoice {
             val byStart = requests.sortedBy { it.start }
-            val solution = mutableListOf<Request>()
+            val solution = mutableListOf<Interval>()
             for (request in byStart) {
                 if (solution.isEmpty() || solution.last().isCompatibleWith(request)) {
                     solution.add(request)
@@ -55,7 +55,7 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
 
         fun bySmallestTimeInterval(requests: IntervalProblem): IntervalChoice {
             val byInterval = requests.sortedBy { it.end - it.start }
-            val solution = mutableListOf<Request>()
+            val solution = mutableListOf<Interval>()
             for (request in byInterval) {
                 if (solution.isEmpty() || solution.last().isCompatibleWith(request)) {
                     solution.add(request)
@@ -66,7 +66,7 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
 
         fun byFewestConflicts(requests: IntervalProblem): IntervalChoice {
             val byLeastConflicts = requests.sortedBy { request -> requests.count { !it.isCompatibleWith(request) } }
-            val solution = mutableListOf<Request>()
+            val solution = mutableListOf<Interval>()
             for (request in byLeastConflicts) {
                 if (solution.isEmpty() || solution.all { request.isCompatibleWith(it) }) {
                     solution.add(request)
@@ -77,7 +77,7 @@ fun IntervalProblem.solvedBy(algorithm: IntervalChoiceAlgorithm): String = build
 
         fun byEarliestEnding(requests: IntervalProblem): IntervalChoice {
             val byEnding = requests.sortedBy { it.end }
-            val solution = mutableListOf<Request>()
+            val solution = mutableListOf<Interval>()
             for (request in byEnding) {
                 if (solution.isEmpty() || solution.last().isCompatibleWith(request)) {
                     solution.add(request)

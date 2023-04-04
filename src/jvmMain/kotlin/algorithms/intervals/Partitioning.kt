@@ -3,7 +3,7 @@ package algorithms.intervals
 import kotlin.math.max
 
 
-class IntervalPartition(private val partitions: List<List<Request>>) : List<List<Request>> by partitions {
+class IntervalPartition(private val partitions: List<List<Interval>>) : List<List<Interval>> by partitions {
 
     override fun toString(): String = partitions.joinToString("\n") { it.renderToString() }
 
@@ -13,55 +13,79 @@ fun IntervalProblem.solvedBy(algorithm: IntervalPartitionAlgorithm): String =
     algorithm.solve(this).toString()
 
 
-object IntervalPartitionAlgorithm {
-    fun solve(problem: IntervalProblem): IntervalChoice {
-        val intervalsSorted = problem.sortedBy { it.start }
+fun interface IntervalPartitionAlgorithm {
+    fun solve(problem: IntervalProblem): IntervalPartition
 
-        (1..problem.size).forEach { j ->
+    companion object {
+        fun solveByTheBook(problem: IntervalProblem): IntervalPartition {
+            val depth = getDepth(problem)
+            val labels = List(depth) { it + 1 }
+            val intervalsSorted = problem.sortedBy { it.start }
 
-        }
-    }
+            val intervalLabels = mutableMapOf<Interval, Int>()
 
-    private fun getDepth(problem: IntervalProblem): Int {
-        val sorted = problem.flatMap { listOf(Edge(it.start, isStart = true), Edge(it.end, isStart = false)) }
-            .sortedBy { it.value }
-
-        var max = 0
-        var current = 0
-        for (edge in sorted) {
-            if (edge.isStart) {
-                current++
-                max = max(current, max)
-            } else {
-                current--
+            repeat(problem.size - 1) { j ->
+                val currentInterval = intervalsSorted[j]
+                val consideredLabels = labels.toMutableList()
+                for (i in 0 until j) {
+                    val precedingInterval = intervalsSorted[i]
+                    if (precedingInterval.overlapsWith(currentInterval)) {
+                        consideredLabels.remove(intervalLabels.getValue(precedingInterval))
+                    }
+                }
+                intervalLabels[currentInterval] = consideredLabels.first()
             }
+
+            val labelsToIntervals = labels.map {
+                    label -> intervalLabels.filter { (_, intervalLabel) -> intervalLabel == label }.keys.toList()
+            }
+
+
+            return IntervalPartition(labelsToIntervals)
         }
-        return max
+
+        private fun getDepth(problem: IntervalProblem): Int {
+            val sorted = problem.flatMap { listOf(Edge(it.start, isStart = true), Edge(it.end, isStart = false)) }
+                .sortedBy { it.value }
+
+            var max = 0
+            var current = 0
+            for (edge in sorted) {
+                if (edge.isStart) {
+                    current++
+                    max = max(current, max)
+                } else {
+                    current--
+                }
+            }
+            return max
+        }
     }
+
 
 }
 
-data class Edge(val value: Int, val isStart: Boolean)
+private data class Edge(val value: Int, val isStart: Boolean)
 
 
 fun main() {
     val caseA = IntervalProblem.of(
-        Request(0, 9),
-        Request(1, 2),
-        Request(3, 4),
-        Request(5, 6),
-        Request(7, 8)
+        Interval(0, 9),
+        Interval(1, 2),
+        Interval(3, 4),
+        Interval(5, 6),
+        Interval(7, 8)
     )
     val caseB = IntervalProblem.of(
-        Request(0, 5),
-        Request(7, 12),
-        Request(4, 8)
+        Interval(0, 5),
+        Interval(7, 12),
+        Interval(4, 8)
     )
     val caseC = IntervalProblem.of(
-        Request(0, 6), Request(8, 12), Request(15, 21), Request(23, 29),
-        Request(5, 9), Request(11, 16), Request(20, 24),
-        Request(5, 9), Request(20, 24),
-        Request(5, 9), Request(20, 24)
+        Interval(0, 6), Interval(8, 12), Interval(15, 21), Interval(23, 29),
+        Interval(5, 9), Interval(11, 16), Interval(20, 24),
+        Interval(5, 9), Interval(20, 24),
+        Interval(5, 9), Interval(20, 24)
     )
 
 }

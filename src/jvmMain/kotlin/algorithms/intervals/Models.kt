@@ -1,20 +1,22 @@
 package algorithms.intervals
 
- class Request(val start: Int, val end: Int) {
+ class Interval(val start: Int, val end: Int) {
     init {
         require(start <= end - 1)
     }
 
-    fun isCompatibleWith(other: Request) = this.end <= other.start || this.start >= other.end
+    fun isCompatibleWith(other: Interval) = this.end <= other.start || this.start >= other.end
+
+     fun overlapsWith(other: Interval) = !isCompatibleWith(other)
     override fun toString(): String {
         return "├" + ("─").repeat(end - start - 1) + "┤"
     }
 }
 
 
-class IntervalProblem(private val requests: List<Request>): List<Request> by requests {
+class IntervalProblem(private val requests: List<Interval>): List<Interval> by requests {
     companion object {
-        fun of(vararg requests: Request) : IntervalProblem = IntervalProblem(requests.toList())
+        fun of(vararg requests: Interval) : IntervalProblem = IntervalProblem(requests.toList())
     }
 }
 
