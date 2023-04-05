@@ -68,7 +68,7 @@ class Intervals {
     }
 
     @Test
-    fun intervalPartition(){
+    fun intervalPartitionBook(){
         val problem = IntervalProblem.of(
             Interval(0, 4), // a
             Interval(0, 4), // c
@@ -83,6 +83,23 @@ class Intervals {
         )
 
         println(problem.solvedBy(IntervalPartitionAlgorithm::solveByTheBook))
+    }
+    @Test
+    fun intervalPartitionFast(){
+        val problem = IntervalProblem.of(
+            Interval(0, 4), // a
+            Interval(0, 4), // c
+            Interval(6, 10), //d
+            Interval(0,10), // b
+            Interval(6, 16), // e
+            Interval(14, 18), //f
+            Interval(14, 18), //g
+            Interval(17, 23), // h
+            Interval(19, 23), //i
+            Interval(19, 23), //j
+        )
+
+        println(problem.solvedBy(IntervalPartitionAlgorithm::solveFast))
     }
 
 

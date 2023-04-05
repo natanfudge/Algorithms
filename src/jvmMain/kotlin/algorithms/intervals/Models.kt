@@ -1,8 +1,11 @@
 package algorithms.intervals
 
  class Interval(val start: Int, val end: Int) {
+
+     val length get() = end - start
     init {
         require(start <= end - 1)
+//        require()
     }
 
     fun isCompatibleWith(other: Interval) = this.end <= other.start || this.start >= other.end

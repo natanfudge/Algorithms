@@ -36,8 +36,41 @@ fun interface IntervalPartitionAlgorithm {
                 intervalLabels[currentInterval] = consideredLabels.first()
             }
 
-            val labelsToIntervals = labels.map {
-                    label -> intervalLabels.filter { (_, intervalLabel) -> intervalLabel == label }.keys.toList()
+            val labelsToIntervals = labels.map { label ->
+                intervalLabels.filter { (_, intervalLabel) -> intervalLabel == label }.keys.toList()
+            }
+
+
+            return IntervalPartition(labelsToIntervals)
+        }
+
+        fun solveFast(problem: IntervalProblem): IntervalPartition {
+            val depth = getDepth(problem)
+            // labels: numbers from 0 to depth-1
+            val labels = 0 until depth
+            val intervalsSorted = problem.sortedBy { it.start }
+
+            val intervalLabels = mutableListOf<Int>()
+
+            repeat(problem.size - 1) { currentIntervalIndex ->
+                val currentInterval = intervalsSorted[currentIntervalIndex]
+                val consideredLabels = labels.toHashSet()
+                for (precedingIntervalIndex in 0 until currentIntervalIndex) {
+                    val precedingInterval = intervalsSorted[precedingIntervalIndex]
+                    if (precedingInterval.overlapsWith(currentInterval)) {
+                        consideredLabels.remove(intervalLabels[precedingIntervalIndex])
+                    }
+                }
+                intervalLabels.add(consideredLabels.first())
+            }
+
+            val labelsToIntervals = labels.map { label ->
+                intervalLabels.mapIndexed { intervalIndex, intervalLabel -> intervalIndex to intervalLabel }
+                    .filter { (_, intervalLabel) -> intervalLabel == label }
+                    .map {
+                        val intervalIndex = it.first
+                        intervalsSorted[intervalIndex]
+                    }
             }
 
 
