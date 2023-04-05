@@ -103,4 +103,43 @@ class Intervals {
     }
 
 
+    @Test
+    fun reducingLatencyShortestFirst() {
+        val problem = TaskProblem.of(
+            Task(1, 100),
+            Task(10, 10)
+        )
+
+        println(problem.solvedBy(IntervalOrderingAlgorithm::shortestFirst))
+    }
+    @Test
+    fun reducingLatencySmallestDiffFirst() {
+        val problemA = TaskProblem.of(
+            Task(1, 100),
+            Task(10, 10)
+        )
+
+        val problemB = TaskProblem.of(
+            Task(1, 2),
+            Task(10,10)
+        )
+
+        println(problemA.solvedBy(IntervalOrderingAlgorithm::smallestDiffFirst))
+        println(problemB.solvedBy(IntervalOrderingAlgorithm::smallestDiffFirst))
+    }
+    @Test
+    fun reducingLatencyEarliestFirst() {
+        val problemA = TaskProblem.of(
+            Task(1, 100),
+            Task(10, 10)
+        )
+
+        val problemB = TaskProblem.of(
+            Task(1, 2),
+            Task(10,10)
+        )
+
+        println(problemA.solvedBy(IntervalOrderingAlgorithm::earliestFirst))
+        println(problemB.solvedBy(IntervalOrderingAlgorithm::earliestFirst))
+    }
 }

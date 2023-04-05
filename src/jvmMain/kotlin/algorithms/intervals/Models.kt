@@ -12,9 +12,11 @@ package algorithms.intervals
 
      fun overlapsWith(other: Interval) = !isCompatibleWith(other)
     override fun toString(): String {
-        return "├" + ("─").repeat(end - start - 1) + "┤"
+        return rangeToString(end - start - 1)
     }
 }
+
+fun rangeToString(length: Int) =  "├" + ("─").repeat(length) + "┤"
 
 
 class IntervalProblem(private val requests: List<Interval>): List<Interval> by requests {
