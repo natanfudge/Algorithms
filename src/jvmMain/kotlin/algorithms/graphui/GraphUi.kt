@@ -25,7 +25,8 @@ import kotlin.math.*
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun GraphUi(graph: Graph, modifier: Modifier = Modifier) {
+fun GraphUi(graph: Graph, modifier: Modifier = Modifier, paths: List<GraphPath> = listOf()) {
+    validatePaths(graph, paths)
     val textMeasurer = rememberTextMeasurer()
     Canvas(modifier.fillMaxSize()) {
         require(size.height >= VertexRadius) { "Not enough vertical space was given to the graph (${size.height})" }
@@ -37,7 +38,8 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) {
             with(textMeasurer) {
                 drawGraph(
                     component,
-                    bounds = Rect(Offset(componentWidth * i + padding, 0f), Size(componentWidth - padding, size.height))
+                    bounds = Rect(Offset(componentWidth * i + padding, 0f), Size(componentWidth - padding, size.height)),
+                    paths = paths.relevantToComponent(component)
                 )
             }
 
@@ -46,9 +48,20 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier) {
     }
 }
 
+fun List<GraphPath>.relevantToComponent(component: Graph) : List<GraphPath> {
+    TODO()
+}
+
+
+private fun validatePaths(graph: Graph, paths: List<GraphPath>) {
+    for (path in paths) {
+        graph.validatePath(path.map { it.tag })
+    }
+}
+
 context(TextMeasurer)
 
-fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
+fun DrawScope.drawGraph(graph: Graph, bounds: Rect, paths: List<GraphPath>) {
     val positions = chooseVertexPositions(graph)
         .mapValues { (_, pos) -> placeVertex(pos, bounds) }
     positions.forEach { (vertex, position) ->
@@ -80,7 +93,7 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect) {
             weight = weights?.getValue(firstEdgeDirection)
         )
 
-        if(secondEdgeDirection != null){
+        if (secondEdgeDirection != null) {
             drawEdge(
                 secondEdgeDirection,
                 positions,
@@ -226,6 +239,7 @@ private fun DrawScope.drawLine(color: Color, start: Offset, end: Offset, label: 
         drawTextBetweenTwoPoints(start, end, center, label)
     }
 }
+
 context(TextContext)
 private fun DrawScope.drawTextBetweenTwoPoints(
     start: Offset,
@@ -234,9 +248,9 @@ private fun DrawScope.drawTextBetweenTwoPoints(
     label: String
 ) {
     val angle = angleBetweenTwoPointsRad(start, end)
-    val upsideDownRange = 3/4f * PI.. 5/4f * PI
+    val upsideDownRange = 3 / 4f * PI..5 / 4f * PI
     // If the angle causes the text to be upside down, flip it by adding pi
-    val actualAngle = if(angle in upsideDownRange) angle + PI.toFloat() else angle
+    val actualAngle = if (angle in upsideDownRange) angle + PI.toFloat() else angle
     rotateRad(actualAngle, pivot = center) {
         drawText(center, label, textStyle = TextStyle(fontSize = 24.sp))
     }
@@ -281,7 +295,12 @@ context (TextContext)
 fun DrawScope.drawText(center: Offset, text: String, textStyle: TextStyle = TextStyle.Default) {
     val width = text.length * 8f
     val pxSize = if (textStyle.fontSize.type == TextUnitType.Sp) textStyle.fontSize.toPx() else 8f
-    drawText(this@TextContext, topLeft = center - Offset(width / 2f, pxSize), text = text, style = textStyle.copy(fontFamily = FontFamily.Monospace))
+    drawText(
+        this@TextContext,
+        topLeft = center - Offset(width / 2f, pxSize),
+        text = text,
+        style = textStyle.copy(fontFamily = FontFamily.Monospace)
+    )
 }
 
 

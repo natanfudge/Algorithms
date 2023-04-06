@@ -18,7 +18,10 @@ private val baseColors = listOf(
 private val colors = baseColors + baseColors.map { it.copy(alpha = 0.5f) }
 
 fun vertices(vararg vertexNames: String): List<VertexTag> {
-    return vertexNames.mapIndexed { index, s -> VertexTag(colors[index], s) }
+    return vertexNames.mapIndexed { index, s ->
+        val c = colors
+        VertexTag(c[index], s)
+    }
 }
 
 operator fun <T> List<T>.component6() = this[5]

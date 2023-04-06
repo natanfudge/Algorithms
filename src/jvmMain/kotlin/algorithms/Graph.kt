@@ -98,10 +98,26 @@ sealed interface Graph {
     }
 }
 
+fun Graph.validatePath(path: List<EdgeTag>) {
+    val existingEdges = edges.map { it.tag }.toHashSet()
+    for (edge in path) {
+        if (edge !in existingEdges) {
+            throw IllegalArgumentException("Path ${path.pathToString()} is invalid: it contains non-existent edge ${edge.start}->${edge.end}.")
+        }
+    }
+}
+
+
 fun Graph.matchingEdge(tag: EdgeTag) =     edges.find { it.tag == tag }
     ?: throw IllegalArgumentException("No such edge $tag in graph.")
 fun Graph.matchingVertex(tag: VertexTag) =     vertices.find { it.tag == tag }
     ?: throw IllegalArgumentException("No such vertex $tag in graph.")
+
+fun List<EdgeTag>.bindTo(graph: Graph) : List<Edge> {
+    graph.validatePath(this)
+    val edges = this.toHashSet()
+    return graph.edges.filter { it.tag in edges }
+}
 
 fun buildGraph(directed: Boolean, builder: Graph.Builder.() -> Unit): Graph =
     Graph.Builder().apply(builder).build(directed)
