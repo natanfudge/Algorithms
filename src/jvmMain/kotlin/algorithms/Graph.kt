@@ -133,14 +133,17 @@ fun buildWeightedGraph(directed: Boolean,defaultWeight: Int = 1, builder: contex
     val weightBuilder= WeightsBuilder()
     builder(graphBuilder,weightBuilder)
     val graph = graphBuilder.build(directed)
-    val weights = graph.edges.map { it.tag }.associateWith { defaultWeight } + WeightsBuilder().build()
+    val weights = graph.edges.map { it.tag }.associateWith { defaultWeight } + weightBuilder.build()
     return graph.withWeightTags(weights)
 }
+
+fun buildWeightedDirectedGraph(defaultWeight: Int = 1, builder: context(Graph.Builder, WeightsBuilder) () -> Unit): WeightedDirectedGraph
+= buildWeightedGraph(directed = true, defaultWeight, builder) as WeightedDirectedGraph
 
 class WeightsBuilder {
     private val weights: MutableMap<EdgeTag,Int> = mutableMapOf()
     fun EdgeTag.weighing(weight: Int) {
-        weights[this] = weight
+        weights[this@weighing] = weight
     }
 
     fun List<EdgeTag>.weighing(vararg weights: Int) {

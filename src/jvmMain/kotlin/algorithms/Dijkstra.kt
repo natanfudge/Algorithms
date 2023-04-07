@@ -49,12 +49,12 @@ fun WeightedDirectedGraph.dijkstra(start: Vertex, end: Vertex): GraphPath {
         nodeShortestPathParent[closestEdge.end] = closestEdge
     }
 
-    val shortestPathFromEnd = mutableListOf<Edge>()
+    val shortestPathFromEnd = mutableListOf(nodeShortestPathParent.getValue(end))
 
-    do {
+    while (shortestPathFromEnd.last().start != start){
         val previous = nodeShortestPathParent.getValue(shortestPathFromEnd.last().start)
         shortestPathFromEnd.add(previous)
-    } while (previous.start != start)
+    }
 
     return GraphPath(shortestPathFromEnd.asReversed())
 }

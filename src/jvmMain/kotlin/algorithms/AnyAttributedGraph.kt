@@ -1,64 +1,43 @@
 package algorithms
 
-import org.jetbrains.annotations.Debug.Renderer
 import kotlin.reflect.KClass
 
 /**
  * Allows adding attributes to a graph, e.g. direction, weight, root
  */
-@Renderer(text = "\"Graph:\" + toString()")
-open class SingleAttributedGraph<T : GraphAttribute>(
-    private val graph: Graph,
-    private val clazz: KClass<T>,
-    override val attributes: GraphAttributes
-) : AttributedGraph, Graph by graph {
-    fun getAttribute(): T = attributes[clazz]!! as T
-    override fun toString(): String {
-        return graph.toString() + " (${attributes.values.joinToString()})"
-    }
-}
 
-//interface SingleAttributedGraph<T: GraphAttribute>: AttributedGraph {
-//    val clazz: KClass<T>
-//}
-//
-// class SingleAttributeGraphImpl<T : GraphAttribute>(
-//    private val graph: Graph,
-//    private val clazz: KClass<T>,
-//    override val attributes: GraphAttributes
-//) : SingleAttributedGraph, Graph by graph {
-//    fun getAttribute(): T = attributes[clazz]!! as T
-//    override fun toString(): String {
-//        return graph.toString() + " (${attributes.values.joinToString()})"
-//    }
-//}
+typealias SingleAttributedGraph<T1> = AttributedGraph<T1, T1>
 
+class AttributedGraphImpl(private val graph: Graph, override val attributes: GraphAttributes) :
+    AttributedGraph<Nothing, Nothing>, Graph by graph
 
-class DoubleAttributedGraph<T1: GraphAttribute, T2: GraphAttribute>(
-    graph: Graph,
-    class1: KClass<T1>,
-    private val class2: KClass<T2>,
-    attributes: GraphAttributes
-): SingleAttributedGraph<T1>(graph,class1, attributes)
+typealias DoubleAttributedGraph<T1, T2> = AttributedGraph<T1, T2>
+
 
 // Access to weight will be available, access to directed will be need to made through a cast, unfortunately.
 // That is because we can't implement the same interface twice with different type arguments.
 typealias WeightedDirectedGraph = DoubleAttributedGraph<GraphAttribute.Weights, GraphAttribute.Directed>
 
-interface AttributedGraph: Graph {
+
+typealias AnyAttributedGraph = AttributedGraph<*, *>
+
+interface AttributedGraph<T1, T2> : Graph {
     val attributes: GraphAttributes
 }
 
+inline fun <reified T : GraphAttribute> AttributedGraph<T, *>.getAttribute(): T = attributes[T::class] as T
+
 typealias GraphAttributes = Map<KClass<out GraphAttribute>, GraphAttribute>
 
-val Graph.attributes get() = when(this) {
-    is AttributedGraph -> attributes
-    else -> mapOf()
-}
+val Graph.attributes
+    get() = when (this) {
+        is AnyAttributedGraph -> attributes
+        else -> mapOf()
+    }
 
 
 fun <G : Graph> Graph.inheritAttributes(toGraph: G): G {
-    if (this !is AttributedGraph) return toGraph
+    if (this !is AnyAttributedGraph) return toGraph
     var sum: G = toGraph
     for (attribute in attributes.values) {
         sum = attribute.inherit(sum) as G
@@ -68,7 +47,7 @@ fun <G : Graph> Graph.inheritAttributes(toGraph: G): G {
 
 
 inline fun <reified T : GraphAttribute> Graph.withAttribute(attribute: T): SingleAttributedGraph<T> =
-    SingleAttributedGraph(this, T::class, attributes = attributes + (T::class to attribute))
+    AttributedGraphImpl(this, attributes = attributes + (T::class to attribute)) as SingleAttributedGraph<T>
 
 
 sealed interface GraphAttribute {
@@ -117,7 +96,7 @@ val Graph.asDirected get() = this as DirectedGraph
 
 typealias RootedTree = SingleAttributedGraph<GraphAttribute.Root>
 
-val RootedTree.root get() = getAttribute().root
+val RootedTree.root: Vertex get() = getAttribute().root
 val Graph.isRootedTree: Boolean get() = hasGenericAttribute<GraphAttribute.Root>()
 val Graph.asRootedTree get() = this as RootedTree
 
@@ -130,12 +109,13 @@ fun Graph.rootedAt(vertex: Vertex): RootedTree {
 }
 
 
-typealias WeightedGraph = SingleAttributedGraph<GraphAttribute.Weights>
+typealias WeightedGraph = AttributedGraph<GraphAttribute.Weights, *>
 
 val WeightedGraph.weights get() = getAttribute().weights
 
 context(WeightedGraph)
-val Edge.weight get() = weights.getValue(this)
+val Edge.weight
+    get() = weights.getValue(this)
 
 val Graph.isWeighted: Boolean get() = hasGenericAttribute<GraphAttribute.Weights>()
 val Graph.asWeighted get() = this as WeightedGraph

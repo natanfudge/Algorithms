@@ -49,7 +49,8 @@ fun GraphUi(graph: Graph, modifier: Modifier = Modifier, paths: List<GraphPath> 
 }
 
 fun List<GraphPath>.relevantToComponent(component: Graph) : List<GraphPath> {
-    TODO()
+    val edges = component.edges.toHashSet()
+    return filter { path -> path.any { it in edges } }
 }
 
 
@@ -75,6 +76,8 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect, paths: List<GraphPath>) {
 
     val topologicalGraph = graph.isDirected && graph.asDirected.isTopologicallySortable && !graph.isTree()
 
+    val pathsAsSets = paths.map { it.toHashSet() }
+
     edgePairs.forEachIndexed { i, (firstEdgeDirection, secondEdgeDirection) ->
         drawEdge(
             firstEdgeDirection,
@@ -90,7 +93,8 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect, paths: List<GraphPath>) {
                 // Two sided edge: first edge is above, second edge is below
                 else -> CurvedArrowType.Above
             },
-            weight = weights?.getValue(firstEdgeDirection)
+            weight = weights?.getValue(firstEdgeDirection),
+            pathsAsSets
         )
 
         if (secondEdgeDirection != null) {
@@ -101,7 +105,8 @@ fun DrawScope.drawGraph(graph: Graph, bounds: Rect, paths: List<GraphPath>) {
                 // Topological graph can't have a two-sided edge (since it is acyclic),
                 // so this just continues the last case in the previous drawEdge.
                 curve = CurvedArrowType.Below,
-                weight = weights?.getValue(secondEdgeDirection)
+                weight = weights?.getValue(secondEdgeDirection),
+                pathsAsSets
             )
         }
     }
@@ -166,7 +171,7 @@ fun DrawScope.drawCurvedArrow(color: Color, start: Offset, end: Offset, up: Bool
 
     if (text != null) {
         val centerPoint = quadraticBezierPoint(start, end, controlPoint, fractionOfWay = 0.5f)
-        drawTextBetweenTwoPoints(start = start, end = end, center = centerPoint, text)
+        drawTextBetweenTwoPoints(start = start, end = end, center = centerPoint, text, color)
     }
 }
 
@@ -205,7 +210,10 @@ fun DrawScope.drawEdge(
     directed: Boolean,
     curve: CurvedArrowType,
     weight: Int?,
+    pathsAsSets: List<HashSet<Edge>>
 ) {
+    val edgePathIndex = pathsAsSets.indexOfFirst { edge in it }
+
     val start = vertexPositions[edge.start]
         ?: error("Vertex ${edge.start} was not positioned, positioned: ${vertexPositions.keys}")
     val end =
@@ -216,9 +224,14 @@ fun DrawScope.drawEdge(
 
     val text = weight?.toString()
 
+    val color = when(edgePathIndex) {
+        -1 -> Color.Black
+        else -> pathColors[edgePathIndex]
+    }
+
     when {
         curve != CurvedArrowType.None -> drawCurvedArrowOnCircles(
-            Color.Black,
+            color,
             start,
             end,
             up = curve == CurvedArrowType.Above,
@@ -226,17 +239,19 @@ fun DrawScope.drawEdge(
             text
         )
 
-        directed -> drawArrow(Color.Black, startToVertex, endToVertex, text)
-        else -> drawLine(Color.Black, start = startToVertex, end = endToVertex, text)
+        directed -> drawArrow(color, startToVertex, endToVertex, text)
+        else -> drawLine(color, start = startToVertex, end = endToVertex, text)
     }
 }
+
+private val pathColors = listOf(Color.Red, Color.Blue, Color.Green)
 
 context (TextContext)
 private fun DrawScope.drawLine(color: Color, start: Offset, end: Offset, label: String?) {
     drawLine(color, start, end)
     if (label != null) {
         val center = (start + end) / 2f - Offset(0f, 2f)
-        drawTextBetweenTwoPoints(start, end, center, label)
+        drawTextBetweenTwoPoints(start, end, center, label, color)
     }
 }
 
@@ -245,14 +260,15 @@ private fun DrawScope.drawTextBetweenTwoPoints(
     start: Offset,
     end: Offset,
     center: Offset,
-    label: String
+    label: String,
+    color: Color
 ) {
     val angle = angleBetweenTwoPointsRad(start, end)
     val upsideDownRange = 3 / 4f * PI..5 / 4f * PI
     // If the angle causes the text to be upside down, flip it by adding pi
     val actualAngle = if (angle in upsideDownRange) angle + PI.toFloat() else angle
     rotateRad(actualAngle, pivot = center) {
-        drawText(center, label, textStyle = TextStyle(fontSize = 24.sp))
+        drawText(center, label, textStyle = TextStyle(fontSize = 24.sp, color = color))
     }
 }
 
