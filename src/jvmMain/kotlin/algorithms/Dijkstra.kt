@@ -1,6 +1,7 @@
 package algorithms
 
 import minElementAndValue
+import java.util.PriorityQueue
 
 //typealias GraphPath = List<Edge>
 
@@ -33,15 +34,47 @@ fun Graph.pathThrough(vararg vertices: VertexTag): GraphPath {
 }
 
 fun WeightedDirectedGraph.dijkstra(start: VertexTag, end: VertexTag) =
-    dijkstra(matchingVertex(start), matchingVertex(end))
+    dijkstraFast(matchingVertex(start), matchingVertex(end))
 
 //TODO: important: see Test 2020a-b question2, and try to solve after doing this.
-fun WeightedDirectedGraph.dijkstra(start: Vertex, end: Vertex): GraphPath {
+
+// O(mn)
+fun WeightedDirectedGraph.dijkstraSimple(start: Vertex, end: Vertex): GraphPath {
     if (start == end) return GraphPath(listOf())
 
     val exploredNodeDistances = mutableMapOf(start to 0)
     val nodeShortestPathParent = mutableMapOf<Vertex, Edge>()
+    // n iterations
     while (exploredNodeDistances.size < vertices.size) {
+        // Up to m edges filtered
+        val outwordEdges = exploredNodeDistances.keys.flatMap { edgesOf(it) }
+            .filter { it.end !in exploredNodeDistances }
+        val (closestEdge, distance) = outwordEdges.minElementAndValue { exploredNodeDistances.getValue(it.start) + it.weight }
+        exploredNodeDistances[closestEdge.end] = distance
+        nodeShortestPathParent[closestEdge.end] = closestEdge
+    }
+
+    val shortestPathFromEnd = mutableListOf(nodeShortestPathParent.getValue(end))
+
+    while (shortestPathFromEnd.last().start != start){
+        val previous = nodeShortestPathParent.getValue(shortestPathFromEnd.last().start)
+        shortestPathFromEnd.add(previous)
+    }
+
+    return GraphPath(shortestPathFromEnd.asReversed())
+}
+fun WeightedDirectedGraph.dijkstraFast(start: Vertex, end: Vertex): GraphPath {
+    if (start == end) return GraphPath(listOf())
+
+    val vertexSelectionQueue = PriorityQueue<Vertex>()
+
+    vertexSelectionQueue.remove()
+
+    val exploredNodeDistances = mutableMapOf(start to 0)
+    val nodeShortestPathParent = mutableMapOf<Vertex, Edge>()
+    // n iterations
+    while (exploredNodeDistances.size < vertices.size) {
+        // Up to m edges filtered
         val outwordEdges = exploredNodeDistances.keys.flatMap { edgesOf(it) }
             .filter { it.end !in exploredNodeDistances }
         val (closestEdge, distance) = outwordEdges.minElementAndValue { exploredNodeDistances.getValue(it.start) + it.weight }
