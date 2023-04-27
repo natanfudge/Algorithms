@@ -1,6 +1,4 @@
-import algorithms.fft.Digits
-import algorithms.fft.part
-import algorithms.fft.toDigitRepresentation
+import algorithms.fft.*
 import org.junit.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -14,6 +12,8 @@ class FftMultTest {
         val digits = num.toDigitRepresentation()
         expectThat(digits).isEqualTo(Digits.fromString("11101010101111111101101011101"))
         expectThat(digits.value).isEqualTo(num)
+        val asPolynomial = digits.toPolynomial()
+        expectThat(asPolynomial.evaluateAsPolynomialAt(2).asReal().toInt()).isEqualTo(num)
     }
 
     @Test

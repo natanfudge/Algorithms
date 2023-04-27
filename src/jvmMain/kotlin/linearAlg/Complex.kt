@@ -13,6 +13,15 @@ operator fun Int.plus(complex: Complex) = this.toDouble() + complex
 operator fun Double.minus(complex: Complex) = Complex(this - complex.real, -complex.imaginary)
 operator fun Int.minus(complex: Complex) = this.toDouble() - complex
 
+fun Complex.pow(power: Int): Complex {
+    check(power >= 0)
+    var mult = 1.justReal
+    repeat(power) {
+        mult *= this
+    }
+    return mult
+}
+
 data class Complex(val real: Double, val imaginary: Double) {
     override fun equals(other: Any?): Boolean =
         other is Complex && real.roundTo5DecimalSpaces() == other.real.roundTo5DecimalSpaces()
@@ -77,6 +86,11 @@ data class Complex(val real: Double, val imaginary: Double) {
             else -> "$realStr + ${imaginaryStr}i"
         }
     }
+
+
+    fun asReal() = if(imaginary != 0.0) {
+        throw TypeCastException()
+    } else real
 
     private fun Double.trimDecimalPoint() = roundTo5DecimalSpaces().toString().removeSuffix(".0")
 

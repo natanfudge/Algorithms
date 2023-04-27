@@ -2,6 +2,8 @@ package algorithms.fft
 
 import linearAlg.Complex
 import linearAlg.justReal
+import linearAlg.pow
+import pow
 
 //typealias Polynomial = List<Complex>
 class Vector(private val list: List<Complex>): List<Complex> by list{
@@ -25,7 +27,17 @@ class Vector(private val list: List<Complex>): List<Complex> by list{
         }
         return Vector(newList)
     }
+
+    fun evaluateAsPolynomialAt(x: Complex): Complex {
+        var sum = 0.justReal
+        list.asReversed().forEachIndexed { i, element ->
+            sum += x.pow(i) * element
+        }
+        return sum
+    }
 }
+
+fun Vector.evaluateAsPolynomialAt(x: Int) = evaluateAsPolynomialAt(x.justReal)
 
 
 
@@ -35,7 +47,8 @@ fun vectorOf(vararg values: Int) = Vector(values.toList().map { it.justReal })
 
 fun polynomialOf(vararg values: Complex) = Vector(values.toList().asReversed())
 fun polynomialOf(vararg values: Double) = Vector(values.toList().asReversed().map { it.justReal })
-fun polynomialOf(vararg values: Int) = Vector(values.toList().asReversed().map { it.justReal })
+fun polynomialOf(vararg values: Int) = polynomialOf(values.toList())
+fun polynomialOf(values: List<Int>) = Vector(values.asReversed().map { it.justReal })
 
 fun listOfComplex(vararg values: Double) = values.toList().map { it.justReal }
 
