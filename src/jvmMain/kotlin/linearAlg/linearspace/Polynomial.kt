@@ -91,7 +91,7 @@ class Polynomial<T : Any>(val coefficients: List<T>, private val field: NumericF
     fun fftMultiply(other: Polynomial<T>): Polynomial<T> {
         require(this.isZero || coefficients[0] is Complex || coefficients[0] is Number)
         val isComplex = this.isZero || coefficients[0] is Complex
-        return this.toVector().convolve(other.toVector()).toPolynomial(isComplex)
+        return this.toVector().convolve(other.toVector()).flip().toPolynomial(isComplex)
     }
 
     private fun Vector.toPolynomial(complex: Boolean) = Polynomial(

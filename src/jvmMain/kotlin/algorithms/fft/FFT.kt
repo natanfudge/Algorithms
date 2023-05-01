@@ -26,7 +26,7 @@ fun Vector.convolve(other: Vector): Vector {
 
     val multiplied = thisAsPoints.dotProduct(otherAsPoints)
 
-    return ifft(multiplied)
+    return ifft(multiplied).trimZeroes().flip()
 }
 
 private fun nextPowerOf2(num: Int): Int {

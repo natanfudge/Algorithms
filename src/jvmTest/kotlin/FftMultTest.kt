@@ -41,5 +41,11 @@ class FftMultTest {
         expectThat(sum).isEqualTo(num)
     }
 
+    @Test
+    fun testMult() {
+        expectThat(4.fftMult(4)).isEqualTo(4 * 4)
+        expectThat(502.fftMult(480)).isEqualTo(502 * 480)
+    }
+
 }
 
