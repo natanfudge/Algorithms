@@ -43,8 +43,9 @@ class FftMultTest {
 
     @Test
     fun testMult() {
-        expectThat(4.fftMult(4)).isEqualTo(4 * 4)
-        expectThat(502.fftMult(480)).isEqualTo(502 * 480)
+        for((a,b) in listOf(4 to 5, 5 to 7, 480 to 502, 300 to 400)){
+            expectThat(a.fftMult(b)).isEqualTo(a * b)
+        }
     }
 
 }
