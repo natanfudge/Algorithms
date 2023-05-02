@@ -35,30 +35,29 @@ private fun nextPowerOf2(num: Int): Int {
     return power
 }
 
-fun fft(vector: Vector): Vector {
+fun fft(vector: Vector, log: Boolean = false): Vector {
     require(vector.size in powerOfTwo)
 
-    return fftRecur(vector, indent = 0, reverse = false)
+    return fftRecur(vector, indent = 0, reverse = false, log = log)
 }
 
-fun ifft(vector: Vector) = fftRecur(vector, indent = 0, reverse = true).asReversed().vector / vector.size
+fun ifft(vector: Vector, log: Boolean = false) = fftRecur(vector, indent = 0, reverse = true, log = log).asReversed().vector / vector.size
 
-private const val detailFft = false
 
-private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean): Vector {
+private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean, log: Boolean): Vector {
     if (vector.size == 1) {
-        printlnIndent(indent) { "FFT($vector), Return ${vectorOf(vector[0])}" }
+        printlnIndent(indent, log) { "FFT($vector), Return ${vectorOf(vector[0])}" }
         return vectorOf(vector[0])
     }
-    printlnIndent(indent) { "FFT($vector):" }
+    printlnIndent(indent, log) { "FFT($vector):" }
 
     val evenPart = vector.filterIndexed { i, _ -> i % 2 == 0 }.vector
     val oddPart = vector.filterIndexed { i, _ -> i % 2 == 1 }.vector
 
     check(evenPart.size == oddPart.size)
 
-    val evenPartEvaluations = fftRecur(evenPart, indent = indent + 1, reverse)
-    val oddPartEvaluations = fftRecur(oddPart, indent = indent + 1, reverse)
+    val evenPartEvaluations = fftRecur(evenPart, indent = indent + 1, reverse, log)
+    val oddPartEvaluations = fftRecur(oddPart, indent = indent + 1, reverse, log)
 
     val n = vector.size
 
@@ -80,22 +79,22 @@ private fun fftRecur(vector: Vector, indent: Int, reverse: Boolean): Vector {
         result[i] = rootOfUnityPositiveValue
         result[i + n / 2] = rootOfUnityNegativeValue
 
-        printlnIndent(indent) {
+        printlnIndent(indent, log) {
             "Calculate f($root) = $evenPartValue + $root * ($oddPartValue) = $rootOfUnityPositiveValue"
         }
 
-        printlnIndent(indent) {
+        printlnIndent(indent, log) {
             "Calculate f(-($root)) = $evenPartValue - ($root) * ($oddPartValue) = $rootOfUnityNegativeValue"
         }
     }
 
     val resultValues = result.filterNotNull().vector
-    printlnIndent(indent) { "Return $resultValues" }
+    printlnIndent(indent, log) { "Return $resultValues" }
     return resultValues
 }
 
-private fun printlnIndent(indent: Int, string: () -> String) {
-    if (detailFft) println("\t".repeat(indent) + string())
+private fun printlnIndent(indent: Int, log: Boolean, string: () -> String) {
+    if (log) println("\t".repeat(indent) + string())
 }
 
 private fun printIndent(string: String, indent: Int) = print("\t".repeat(indent) + string)
